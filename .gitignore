@@ -7,3 +7,4 @@ Thumbs.db
 .vscode/
 /storage/logs/
 *.log
+*.sql

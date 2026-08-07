@@ -22,6 +22,7 @@
     $app = new App(dirname(__DIR__));
 
     $app->registerMiddleware('auth', [\App\Middleware\AuthMiddleware::class, 'handle']);
+    $app->registerMiddleware('admin', [\App\Middleware\AdminMiddleware::class, 'handle']);
 
     $app->loadRoutesFrom(__DIR__ . '/../routers');
 
