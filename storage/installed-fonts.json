@@ -1,0 +1,8 @@
+{
+    "dejavu sans": {
+        "bold": "\/www\/wwwroot\/ai.vmied.com\/vendor\/dompdf\/dompdf\/lib\/fonts\/DejaVuSans-Bold",
+        "bold_italic": "\/www\/wwwroot\/ai.vmied.com\/vendor\/dompdf\/dompdf\/lib\/fonts\/DejaVuSans-BoldOblique",
+        "italic": "\/www\/wwwroot\/ai.vmied.com\/vendor\/dompdf\/dompdf\/lib\/fonts\/DejaVuSans-Oblique",
+        "normal": "dejavu_sans_normal_2b733a7962258f7c6990d886e0eb6973"
+    }
+}

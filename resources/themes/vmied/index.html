@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Vmied - Viện Nghiên Cứu Phát Triển Giáo Dục Việt Mỹ</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Be Vietnam Pro"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9', // Sky blue
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        },
+                        accent: {
+                            500: '#8b5cf6', // Violet
+                            600: '#7c3aed',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'scroll': 'scroll 40s linear infinite',
+                        'scroll-slow': 'scroll 60s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        scroll: {
+                            '0%': { transform: 'translateX(0)' },
+                            '100%': { transform: 'translateX(-50%)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #0284c7 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+        }
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="text-slate-800 bg-slate-50 antialiased overflow-x-hidden">
+
+    <!-- NAVIGATION -->
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <div class="w-10 h-10 bg-gradient-to-br from-brand-500 to-accent-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-500/30">
+                        V
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-bold text-xl tracking-tight text-slate-900 leading-none">AI Vmied</span>
+                        <span class="text-[10px] text-slate-500 font-medium tracking-wider uppercase mt-1">Viện Nghiên Cứu PTGD Việt Mỹ</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-8 text-sm font-semibold text-slate-600">
+                    <a href="#about" class="hover:text-brand-600 transition-colors py-2">Về chúng tôi</a>
+                    <a href="#demo" class="hover:text-brand-600 transition-colors py-2">Dùng thử</a>
+                    <a href="#features" class="hover:text-brand-600 transition-colors py-2">Tính năng</a>
+                    <a href="#pricing" class="hover:text-brand-600 transition-colors py-2">Bảng giá</a>
+                    <a href="#contact-section" class="hover:text-brand-600 transition-colors py-2">Liên hệ</a>
+                </div>
+
+                <!-- CTA Button -->
+                <div class="hidden md:block">
+                    <button class="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-full font-medium transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2 group">
+                        Đăng nhập
+                        <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-slate-600 hover:text-slate-900 focus:outline-none">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu Panel -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-slate-100">
+            <div class="px-4 pt-2 pb-4 space-y-1">
+                <a href="#about" class="block px-3 py-2 text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50 rounded-md">Về chúng tôi</a>
+                <a href="#demo" class="block px-3 py-2 text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50 rounded-md">Dùng thử</a>
+                <a href="#features" class="block px-3 py-2 text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50 rounded-md">Tính năng</a>
+                <a href="#pricing" class="block px-3 py-2 text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50 rounded-md">Bảng giá</a>
+                <a href="#contact-section" class="block px-3 py-2 text-base font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50 rounded-md">Liên hệ</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="relative pt-32 pb-20 lg:pt-40 lg:pb-24 overflow-hidden">
+        <!-- Background Elements -->
+        <div class="absolute inset-0 bg-grid -z-20"></div>
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-brand-200 blur-3xl opacity-30 animate-pulse-slow -z-10"></div>
+        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-accent-200 blur-3xl opacity-30 animate-pulse-slow -z-10" style="animation-delay: 1s;"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <!-- Trust Badge -->
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 text-xs font-semibold mb-8 shadow-sm hover:shadow-md transition-shadow cursor-default">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                Giấy phép BKH&CN số A-1953
+            </div>
+
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 text-slate-900 leading-[1.15]">
+                Chuẩn Hóa Học Thuật <br class="hidden md:block" />
+                Với Sức Mạnh <span class="text-gradient">Trí Tuệ Nhân Tạo</span>
+            </h1>
+            
+            <p class="mt-4 text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
+                Giải pháp toàn diện từ <strong>Viện Nghiên Cứu Phát Triển Giáo Dục Việt Mỹ</strong>. Kiểm tra đạo văn, phát hiện AI, và tối ưu hóa văn bản tiếng Việt/Anh chuyên sâu.
+            </p>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#demo" class="px-8 py-4 rounded-full bg-gradient-to-r from-slate-900 to-slate-800 text-white font-bold hover:shadow-lg hover:shadow-brand-500/25 hover:-translate-y-1 transition-all transform flex items-center justify-center gap-2">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i>
+                    Trải nghiệm miễn phí
+                </a>
+                <a href="#about" class="px-8 py-4 rounded-full bg-white text-slate-700 border border-slate-200 font-bold hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="info" class="w-5 h-5"></i>
+                    Về VMIED
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- PARTNERS SLIDE SECTION -->
+    <section class="py-10 border-y border-slate-100 bg-white overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-8">
+            <p class="text-sm font-semibold text-slate-400 uppercase tracking-widest">Được tin dùng bởi các tổ chức giáo dục hàng đầu</p>
+        </div>
+        
+        <!-- Infinite Scroll Container -->
+        <!-- Fix: Changed w-[200%] to w-max and structured into two identical groups for seamless looping -->
+        <div class="relative w-full overflow-hidden group">
+            <div class="flex animate-scroll w-max hover:[animation-play-state:paused] opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+                
+                <!-- Group 1 -->
+                <div class="flex items-center gap-16 px-8 shrink-0">
+                    <div class="flex items-center gap-2 text-xl font-bold font-serif text-slate-800 whitespace-nowrap"><i data-lucide="graduation-cap" class="w-8 h-8"></i> UNI HCMC</div>
+                    <div class="flex items-center gap-2 text-xl font-bold font-serif text-slate-800 whitespace-nowrap"><i data-lucide="library" class="w-8 h-8"></i> EDU CENTER</div>
+                    <div class="flex items-center gap-2 text-xl font-bold font-serif text-slate-800 whitespace-nowrap"><i data-lucide="globe-2" class="w-8 h-8"></i> GLOBAL LANG</div>
+                    <div class="flex items-center gap-2 text-xl font-bold font-serif text-slate-800 whitespace-nowrap"><i data-lucide="microscope" class="w-8 h-8"></i> VAYSE LAB</div>
+                    <div class="flex items-center gap-2 text-xl font-bold font-serif text-slate-800 whitespace-nowrap"><i data-lucide="book-open-check" class="w-8 h-8"></i> EDU TECH VN</div>
+                    <div class="flex items-center gap-2 text-xl font-bold font-serif text-slate-800 whitespace-nowrap"><i data-lucide="landmark" class="w-8 h-8"></i> NATIONAL UNI</div>
+                </div>
+
+                <!-- Group 2 (Duplicate) -->
+                <div class="flex items-center gap-16 px-8 shrink-0">
+                    <div class="flex items-center gap-2 text-xl font-bold font-serif text-slate-800 whitespace-nowrap"><i data-lucide="graduation-cap" class="w-8 h-8"></i> UNI HCMC</div>
+                    <div class="flex items-center gap-2 text-xl font-bold font-serif text-slate-800 whitespace-nowrap"><i data-lucide="library" class="w-8 h-8"></i> EDU CENTER</div>
+                    <div class="flex items-center gap-2 text-xl font-bold font-serif text-slate-800 whitespace-nowrap"><i data-lucide="globe-2" class="w-8 h-8"></i> GLOBAL LANG</div>
+                    <div class="flex items-center gap-2 text-xl font-bold font-serif text-slate-800 whitespace-nowrap"><i data-lucide="microscope" class="w-8 h-8"></i> VAYSE LAB</div>
+                    <div class="flex items-center gap-2 text-xl font-bold font-serif text-slate-800 whitespace-nowrap"><i data-lucide="book-open-check" class="w-8 h-8"></i> EDU TECH VN</div>
+                    <div class="flex items-center gap-2 text-xl font-bold font-serif text-slate-800 whitespace-nowrap"><i data-lucide="landmark" class="w-8 h-8"></i> NATIONAL UNI</div>
+                </div>
+
+            </div>
+            <!-- Fade edges -->
+            <div class="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-white to-transparent pointer-events-none"></div>
+            <div class="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-white to-transparent pointer-events-none"></div>
+        </div>
+    </section>
+
+    <!-- DEMO SECTION -->
+    <section id="demo" class="py-24 bg-slate-50 relative scroll-mt-24">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-slate-900">Trải nghiệm sức mạnh AI</h2>
+                <p class="text-slate-500 mt-2">Phân tích văn bản miễn phí (Giới hạn 200 từ/lần)</p>
+            </div>
+
+            <!-- Editor UI -->
+            <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden ring-1 ring-slate-900/5 grid lg:grid-cols-12 min-h-[600px]">
+                
+                <!-- LEFT SIDE: INPUT AREA -->
+                <div class="lg:col-span-7 flex flex-col border-r border-slate-100">
+                    <!-- Toolbar (Simplified - No Tabs) -->
+                    <div class="bg-white px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <span class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                            <i data-lucide="pen-line" class="w-4 h-4 text-brand-500"></i>
+                            Nhập nội dung phân tích
+                        </span>
+                        <div class="text-xs font-medium text-slate-400 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+                            <span id="word-count">0</span>/200 từ
+                        </div>
+                    </div>
+
+                    <!-- Text Area -->
+                    <div class="relative flex-1 bg-white">
+                        <textarea id="demo-input" class="w-full h-full p-6 bg-transparent text-slate-700 text-lg leading-relaxed focus:outline-none resize-none placeholder:text-slate-300 font-sans" placeholder="Dán văn bản của bạn vào đây (tiếng Việt hoặc tiếng Anh)... &#10;Ví dụ: Trí tuệ nhân tạo đang thay đổi cách chúng ta học tập và làm việc..."></textarea>
+                        
+                        <!-- Loading Overlay -->
+                        <div id="loading-overlay" class="absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center hidden backdrop-blur-sm">
+                            <div class="relative">
+                                <div class="w-16 h-16 border-4 border-slate-100 border-t-brand-600 rounded-full animate-spin"></div>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <i data-lucide="sparkles" class="w-6 h-6 text-brand-600 animate-pulse"></i>
+                                </div>
+                            </div>
+                            <p class="text-brand-600 font-bold mt-4 animate-pulse">Đang phân tích dữ liệu...</p>
+                            <p class="text-slate-400 text-xs mt-1">Đang đối chiếu 10 triệu nguồn dữ liệu</p>
+                        </div>
+                    </div>
+
+                    <!-- Action Footer -->
+                    <div class="p-5 bg-white border-t border-slate-100">
+                        <div class="flex flex-wrap gap-3 items-center justify-between">
+                            <div class="flex gap-3">
+                                <button onclick="simulateProcess('plagiarism')" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-bold transition flex items-center gap-2 shadow-lg shadow-slate-200 group">
+                                    <i data-lucide="scan-search" class="w-4 h-4 group-hover:scale-110 transition-transform"></i> Check Đạo văn
+                                </button>
+                                <button onclick="simulateProcess('ai')" class="px-5 py-2.5 bg-white border border-slate-200 hover:border-purple-400 hover:bg-purple-50 hover:text-purple-600 text-slate-600 rounded-xl text-sm font-bold transition flex items-center gap-2 shadow-sm group">
+                                    <i data-lucide="bot" class="w-4 h-4 group-hover:scale-110 transition-transform"></i> Check AI
+                                </button>
+                            </div>
+                            
+                            <!-- Utility Actions -->
+                            <div class="flex items-center gap-2">
+                                <button onclick="alert('Tính năng tải file (.docx, .pdf) dành cho thành viên đăng ký!')" class="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition" title="Tải file lên">
+                                    <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                                </button>
+                                <div class="w-px h-5 bg-slate-200"></div>
+                                <button onclick="document.getElementById('demo-input').value=''; document.getElementById('demo-input').focus();" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition" title="Xóa nội dung">
+                                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT SIDE: RESULTS & CTA -->
+                <div class="lg:col-span-5 bg-slate-50 p-8 flex flex-col relative overflow-hidden">
+                    
+                    <!-- Decorative BG -->
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-brand-200/20 rounded-full blur-3xl -z-0 pointer-events-none"></div>
+
+                    <!-- Header -->
+                    <div class="flex items-center justify-between mb-8 relative z-10">
+                        <h3 class="font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="bar-chart-3" class="w-5 h-5 text-brand-600"></i> Kết quả phân tích
+                        </h3>
+                        <span class="px-2 py-1 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-400 uppercase tracking-wider">Demo Mode</span>
+                    </div>
+
+                    <!-- EMPTY STATE (Default) -->
+                    <div id="result-empty" class="flex-1 flex flex-col items-center justify-center text-center opacity-60">
+                        <div class="w-24 h-24 bg-slate-200 rounded-full flex items-center justify-center mb-4">
+                            <i data-lucide="search" class="w-10 h-10 text-slate-400"></i>
+                        </div>
+                        <p class="text-slate-500 font-medium">Vui lòng nhập văn bản và chọn chế độ kiểm tra bên trái.</p>
+                    </div>
+
+                    <!-- FILLED STATE (Hidden initially) -->
+                    <div id="result-filled" class="hidden flex-col h-full relative z-10 animate-fade-in">
+                        <!-- Chart Area -->
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
+                            <div class="flex items-center justify-center gap-8">
+                                <!-- CSS Donut Chart Simulation -->
+                                <div class="relative w-32 h-32 rounded-full flex items-center justify-center bg-[conic-gradient(#22c55e_98%,#f1f5f9_0)]" id="chart-ring">
+                                    <div class="w-24 h-24 bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
+                                        <span class="text-2xl font-extrabold text-slate-900" id="chart-score">98%</span>
+                                        <span class="text-[10px] text-slate-400 uppercase font-bold" id="chart-label">Human</span>
+                                    </div>
+                                </div>
+                                <div class="space-y-3 text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                        <span class="text-slate-600 font-medium">Con người</span>
+                                        <span class="text-slate-900 font-bold ml-auto" id="human-percent">98%</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                        <span class="text-slate-600 font-medium">AI / Trùng lặp</span>
+                                        <span class="text-slate-900 font-bold ml-auto" id="ai-percent">2%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-slate-100 text-center">
+                                <p class="text-sm text-green-600 font-bold flex items-center justify-center gap-2" id="result-message">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4"></i> Văn bản rất tự nhiên!
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Fix & Share CTA -->
+                        <div class="mt-auto">
+                            <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-5 text-white shadow-lg">
+                                <h4 class="font-bold text-lg mb-2 flex items-center gap-2">
+                                    <i data-lucide="lock" class="w-4 h-4 text-brand-400"></i> Fix & Share Results
+                                </h4>
+                                <p class="text-slate-300 text-xs mb-4 leading-relaxed">
+                                    Tải báo cáo chi tiết (PDF) hoặc chia sẻ liên kết kết quả cho giảng viên/bạn bè.
+                                </p>
+                                
+                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                    <button class="bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg py-2 text-xs font-bold flex items-center justify-center gap-2 transition cursor-not-allowed opacity-70">
+                                        <i data-lucide="download" class="w-3 h-3"></i> Download PDF
+                                    </button>
+                                    <button class="bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg py-2 text-xs font-bold flex items-center justify-center gap-2 transition cursor-not-allowed opacity-70">
+                                        <i data-lucide="share-2" class="w-3 h-3"></i> Share Link
+                                    </button>
+                                </div>
+
+                                <button class="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-900/50 flex items-center justify-center gap-2">
+                                    Đăng nhập để mở khóa
+                                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT / WHY US SECTION -->
+    <section id="about" class="py-24 bg-white scroll-mt-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div class="relative order-2 lg:order-1">
+                    <div class="absolute -top-4 -left-4 w-72 h-72 bg-brand-100 rounded-full mix-blend-multiply filter blur-xl opacity-70"></div>
+                    <div class="absolute -bottom-4 -right-4 w-72 h-72 bg-accent-100 rounded-full mix-blend-multiply filter blur-xl opacity-70"></div>
+                    
+                    <!-- Updated VMIED Card: Gradient Background -->
+                    <div class="relative bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#312e81] rounded-3xl p-8 sm:p-12 text-white overflow-hidden shadow-2xl hover:scale-[1.01] transition duration-500 ring-1 ring-white/10 group">
+                        <!-- Decorative glow -->
+                        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-blue-500/20 blur-[100px] rounded-full"></div>
+                        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-purple-500/20 blur-[100px] rounded-full"></div>
+                        
+                        <div class="absolute top-0 right-0 p-6 opacity-10 rotate-12 transform scale-150 origin-top-right transition-transform group-hover:scale-125 duration-700">
+                            <i data-lucide="shield-check" class="w-64 h-64"></i>
+                        </div>
+                        
+                        <div class="relative z-10">
+                            <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold mb-6 border border-white/20 text-blue-200 shadow-inner">
+                                 <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                                 VIỆN VMIED
+                            </div>
+                            
+                            <h3 class="text-3xl md:text-4xl font-bold mb-6 text-white tracking-tight leading-tight">
+                                Uy Tín & <br>
+                                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-purple-200">Chất Lượng Hàng Đầu</span>
+                            </h3>
+                            
+                            <p class="text-blue-100/80 mb-8 leading-relaxed text-lg font-light">
+                                Viện Nghiên Cứu Phát Triển Giáo Dục Việt Mỹ (VMIED) hoạt động với sứ mệnh nâng tầm trí thức Việt. Chúng tôi cam kết minh bạch và liêm chính trong từng dòng code.
+                            </p>
+                            
+                            <ul class="space-y-4">
+                                <li class="flex items-start gap-4 bg-white/5 p-4 rounded-xl backdrop-blur-sm border border-white/5 hover:bg-white/10 transition-colors">
+                                    <div class="p-2 bg-blue-500/20 rounded-lg shrink-0">
+                                        <i data-lucide="award" class="w-5 h-5 text-blue-300"></i>
+                                    </div>
+                                    <div>
+                                        <span class="block font-bold text-white text-sm">Pháp lý vững chắc</span>
+                                        <span class="text-blue-200/70 text-xs">Cấp phép số A-1953 bởi Bộ KH&CN.</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-4 bg-white/5 p-4 rounded-xl backdrop-blur-sm border border-white/5 hover:bg-white/10 transition-colors">
+                                    <div class="p-2 bg-green-500/20 rounded-lg shrink-0">
+                                        <i data-lucide="lock" class="w-5 h-5 text-green-300"></i>
+                                    </div>
+                                    <div>
+                                        <span class="block font-bold text-white text-sm">Bảo mật tuyệt đối</span>
+                                        <span class="text-blue-200/70 text-xs">Không lưu trữ dữ liệu người dùng.</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-4 bg-white/5 p-4 rounded-xl backdrop-blur-sm border border-white/5 hover:bg-white/10 transition-colors">
+                                    <div class="p-2 bg-purple-500/20 rounded-lg shrink-0">
+                                        <i data-lucide="cpu" class="w-5 h-5 text-purple-300"></i>
+                                    </div>
+                                    <div>
+                                        <span class="block font-bold text-white text-sm">Công nghệ tiên phong</span>
+                                        <span class="text-blue-200/70 text-xs">Ứng dụng AI mới nhất vào giáo dục.</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="order-1 lg:order-2">
+                    <span class="text-brand-600 font-bold tracking-wider uppercase text-sm">Tại sao chọn chúng tôi?</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-2 mb-6">Sự khác biệt của AI Vmied</h2>
+                    <p class="text-lg text-slate-600 mb-8 leading-relaxed">
+                        Trong kỷ nguyên số, sự chính trực học thuật là vô giá. Chúng tôi cung cấp công cụ không chỉ để "bắt lỗi" mà để "nâng tầm" chất lượng bài viết của bạn.
+                    </p>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="flex gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 shrink-0">
+                                <i data-lucide="zap" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">Tốc độ siêu tốc</h4>
+                                <p class="text-sm text-slate-500 mt-1">Xử lý 10.000 từ chỉ trong vài giây với độ trễ gần như bằng không.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 shrink-0">
+                                <i data-lucide="database" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">Dữ liệu Việt hóa</h4>
+                                <p class="text-sm text-slate-500 mt-1">Tối ưu đặc biệt cho tiếng Việt, điều mà các công cụ quốc tế thường bỏ qua.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 shrink-0">
+                                <i data-lucide="lock" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">Bảo mật tuyệt đối</h4>
+                                <p class="text-sm text-slate-500 mt-1">Văn bản của bạn là của bạn. Chúng tôi cam kết không chia sẻ dữ liệu.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600 shrink-0">
+                                <i data-lucide="coins" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">Chi phí hợp lý</h4>
+                                <p class="text-sm text-slate-500 mt-1">Mô hình nạp Credit linh hoạt, phù hợp túi tiền sinh viên.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES SECTION -->
+    <section id="features" class="py-24 bg-slate-50 scroll-mt-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="text-brand-600 font-bold tracking-wider uppercase text-sm">Công nghệ cốt lõi</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-2">6 Công cụ Mạnh mẽ</h2>
+                <p class="mt-4 text-slate-600 max-w-2xl mx-auto">Kết hợp giữa thuật toán NLP tiên tiến và cơ sở dữ liệu học thuật khổng lồ.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="group bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100">
+                    <div class="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center text-red-600 mb-6 group-hover:rotate-6 transition-transform">
+                        <i data-lucide="file-warning" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-slate-900">1. Kiểm tra Đạo văn</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">Quét trùng lặp từ hàng tỷ nguồn internet, tạp chí khoa học và luận văn. Báo cáo chi tiết nguồn gốc.</p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="group bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100">
+                    <div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600 mb-6 group-hover:rotate-6 transition-transform">
+                        <i data-lucide="cpu" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-slate-900">2. Kiểm tra AI Viết</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">Phát hiện văn bản tạo bởi ChatGPT, Claude, Gemini... Giúp duy trì tính liêm chính trong học thuật.</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="group bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100">
+                    <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 mb-6 group-hover:rotate-6 transition-transform">
+                        <i data-lucide="book-check" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-slate-900">3. Kiểm tra Ngữ pháp</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">Phân tích cú pháp chuyên sâu cho Tiếng Việt và Tiếng Anh. Gợi ý sửa lỗi phù hợp ngữ cảnh.</p>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="group bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100">
+                    <div class="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center text-green-600 mb-6 group-hover:rotate-6 transition-transform">
+                        <i data-lucide="type" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-slate-900">4. Kiểm tra Chính tả</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">Tự động phát hiện và sửa lỗi chính tả, lỗi đánh máy, dấu câu sai quy cách.</p>
+                </div>
+
+                <!-- Card 5 -->
+                <div class="group bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100">
+                    <div class="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center text-orange-600 mb-6 group-hover:rotate-6 transition-transform">
+                        <i data-lucide="glasses" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-slate-900">5. Đánh giá Đọc hiểu</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">Chấm điểm độ dễ đọc (Readability score). Đảm bảo văn bản phù hợp với trình độ người đọc mục tiêu.</p>
+                </div>
+
+                <!-- Card 6 -->
+                <div class="group bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100">
+                    <div class="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600 mb-6 group-hover:rotate-6 transition-transform">
+                        <i data-lucide="pen-tool" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-slate-900">6. Humanizer (Viết lại)</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">Công cụ Paraphrase cao cấp. Biến văn bản khô khan hoặc văn bản AI thành văn phong tự nhiên.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS SCROLLING SECTION -->
+    <section class="py-24 bg-white border-y border-slate-100 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 text-center">
+            <h2 class="text-3xl font-bold text-slate-900 mb-4">Cộng đồng nói gì về chúng tôi?</h2>
+            <p class="text-slate-600">Hàng ngàn sinh viên và giảng viên đã tin tưởng lựa chọn VMIED.</p>
+        </div>
+        
+        <!-- Scrolling Track -->
+        <!-- Fix: Changed w-[200%] to w-max and structured into two identical groups with calculated padding for seamless gap -->
+        <div class="relative w-full group">
+            <div class="flex animate-scroll-slow w-max hover:[animation-play-state:paused]">
+                
+                <!-- Group 1 -->
+                <!-- Gap-6 is 1.5rem (24px). We use px-3 (0.75rem/12px) on wrappers so 12px+12px = 24px gap at junction -->
+                <div class="flex gap-6 px-3 shrink-0">
+                    <!-- 1 -->
+                    <div class="w-96 shrink-0 bg-slate-50 p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <div class="text-yellow-400 mb-3 flex gap-1"><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i></div>
+                        <p class="text-slate-600 italic mb-4 text-sm h-20">"Là giảng viên hướng dẫn, tôi luôn khuyến khích sinh viên dùng AI Vmied để tự kiểm tra trước khi nộp bài. Công cụ rất chính xác."</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 text-sm">TH</div>
+                            <div><h5 class="font-bold text-slate-900 text-sm">TS. Trần Văn Hùng</h5><p class="text-xs text-slate-500">Giảng viên ĐH</p></div>
+                        </div>
+                    </div>
+
+                    <!-- 2 -->
+                    <div class="w-96 shrink-0 bg-slate-50 p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <div class="text-yellow-400 mb-3 flex gap-1"><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i></div>
+                        <p class="text-slate-600 italic mb-4 text-sm h-20">"Tính năng Humanizer thực sự cứu cánh! Giúp câu văn tự nhiên hơn hẳn. Giá lại rất rẻ cho sinh viên."</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-brand-200 flex items-center justify-center font-bold text-brand-600 text-sm">MA</div>
+                            <div><h5 class="font-bold text-slate-900 text-sm">Minh Anh</h5><p class="text-xs text-slate-500">Sinh viên năm cuối</p></div>
+                        </div>
+                    </div>
+
+                    <!-- 3 -->
+                    <div class="w-96 shrink-0 bg-slate-50 p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <div class="text-yellow-400 mb-3 flex gap-1"><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4"></i></div>
+                        <p class="text-slate-600 italic mb-4 text-sm h-20">"Giao diện trực quan. Thích nhất là nạp bao nhiêu dùng bấy nhiêu, không bị ép mua gói tháng."</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-accent-200 flex items-center justify-center font-bold text-accent-600 text-sm">LN</div>
+                            <div><h5 class="font-bold text-slate-900 text-sm">Lê Ngọc</h5><p class="text-xs text-slate-500">Content Creator</p></div>
+                        </div>
+                    </div>
+
+                    <!-- 4 -->
+                    <div class="w-96 shrink-0 bg-slate-50 p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <div class="text-yellow-400 mb-3 flex gap-1"><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i></div>
+                        <p class="text-slate-600 italic mb-4 text-sm h-20">"Check đạo văn rất sâu, tìm được cả những nguồn từ tài liệu tiếng Việt cũ. Rất đáng tiền."</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-green-200 flex items-center justify-center font-bold text-green-600 text-sm">TV</div>
+                            <div><h5 class="font-bold text-slate-900 text-sm">Trần Văn</h5><p class="text-xs text-slate-500">Nghiên cứu sinh</p></div>
+                        </div>
+                    </div>
+
+                    <!-- 5 -->
+                    <div class="w-96 shrink-0 bg-slate-50 p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <div class="text-yellow-400 mb-3 flex gap-1"><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4"></i></div>
+                        <p class="text-slate-600 italic mb-4 text-sm h-20">"Hỗ trợ nhiệt tình. Mình gặp lỗi nạp tiền lúc 11h đêm mà vẫn được admin support ngay lập tức."</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center font-bold text-pink-600 text-sm">HA</div>
+                            <div><h5 class="font-bold text-slate-900 text-sm">Hoàng Anh</h5><p class="text-xs text-slate-500">Sinh viên</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group 2 (Duplicate) -->
+                <div class="flex gap-6 px-3 shrink-0">
+                    <!-- 1 -->
+                    <div class="w-96 shrink-0 bg-slate-50 p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <div class="text-yellow-400 mb-3 flex gap-1"><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i></div>
+                        <p class="text-slate-600 italic mb-4 text-sm h-20">"Là giảng viên hướng dẫn, tôi luôn khuyến khích sinh viên dùng AI Vmied để tự kiểm tra trước khi nộp bài. Công cụ rất chính xác."</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 text-sm">TH</div>
+                            <div><h5 class="font-bold text-slate-900 text-sm">TS. Trần Văn Hùng</h5><p class="text-xs text-slate-500">Giảng viên ĐH</p></div>
+                        </div>
+                    </div>
+
+                    <!-- 2 -->
+                    <div class="w-96 shrink-0 bg-slate-50 p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <div class="text-yellow-400 mb-3 flex gap-1"><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i></div>
+                        <p class="text-slate-600 italic mb-4 text-sm h-20">"Tính năng Humanizer thực sự cứu cánh! Giúp câu văn tự nhiên hơn hẳn. Giá lại rất rẻ cho sinh viên."</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-brand-200 flex items-center justify-center font-bold text-brand-600 text-sm">MA</div>
+                            <div><h5 class="font-bold text-slate-900 text-sm">Minh Anh</h5><p class="text-xs text-slate-500">Sinh viên năm cuối</p></div>
+                        </div>
+                    </div>
+
+                    <!-- 3 -->
+                    <div class="w-96 shrink-0 bg-slate-50 p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <div class="text-yellow-400 mb-3 flex gap-1"><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4"></i></div>
+                        <p class="text-slate-600 italic mb-4 text-sm h-20">"Giao diện trực quan. Thích nhất là nạp bao nhiêu dùng bấy nhiêu, không bị ép mua gói tháng."</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-accent-200 flex items-center justify-center font-bold text-accent-600 text-sm">LN</div>
+                            <div><h5 class="font-bold text-slate-900 text-sm">Lê Ngọc</h5><p class="text-xs text-slate-500">Content Creator</p></div>
+                        </div>
+                    </div>
+
+                    <!-- 4 -->
+                    <div class="w-96 shrink-0 bg-slate-50 p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <div class="text-yellow-400 mb-3 flex gap-1"><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i></div>
+                        <p class="text-slate-600 italic mb-4 text-sm h-20">"Check đạo văn rất sâu, tìm được cả những nguồn từ tài liệu tiếng Việt cũ. Rất đáng tiền."</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-green-200 flex items-center justify-center font-bold text-green-600 text-sm">TV</div>
+                            <div><h5 class="font-bold text-slate-900 text-sm">Trần Văn</h5><p class="text-xs text-slate-500">Nghiên cứu sinh</p></div>
+                        </div>
+                    </div>
+
+                    <!-- 5 -->
+                    <div class="w-96 shrink-0 bg-slate-50 p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <div class="text-yellow-400 mb-3 flex gap-1"><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4"></i></div>
+                        <p class="text-slate-600 italic mb-4 text-sm h-20">"Hỗ trợ nhiệt tình. Mình gặp lỗi nạp tiền lúc 11h đêm mà vẫn được admin support ngay lập tức."</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center font-bold text-pink-600 text-sm">HA</div>
+                            <div><h5 class="font-bold text-slate-900 text-sm">Hoàng Anh</h5><p class="text-xs text-slate-500">Sinh viên</p></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+             <!-- Fade edges -->
+             <div class="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-white to-transparent pointer-events-none z-10"></div>
+             <div class="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-white to-transparent pointer-events-none z-10"></div>
+        </div>
+    </section>
+
+    <!-- PRICING SECTION -->
+    <section id="pricing" class="py-24 bg-slate-50 overflow-hidden scroll-mt-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+                
+                <!-- LEFT COLUMN: Info & Compact Price List -->
+                <div class="animate-on-scroll">
+                    <h2 class="text-4xl font-bold text-slate-900 mb-6">Chi phí linh hoạt <br> <span class="text-gradient">Pay As You Go</span></h2>
+                    <p class="text-lg text-slate-600 mb-8 leading-relaxed">
+                        Hệ thống sử dụng ví <strong>VMIED</strong> với tỷ giá 1:1 so với VNĐ. Bạn nạp bao nhiêu dùng bấy nhiêu, minh bạch tuyệt đối và tiết kiệm chi phí.
+                    </p>
+                    
+                    <!-- Feature Points (Restored) -->
+                    <div class="space-y-6 mb-10">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-brand-50 flex items-center justify-center text-brand-600 mt-1 shrink-0">
+                                <i data-lucide="wallet" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">Nạp bao nhiêu dùng bấy nhiêu</h4>
+                                <p class="text-sm text-slate-600 mt-1">Không gia hạn tự động. Không phí ẩn.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-brand-50 flex items-center justify-center text-brand-600 mt-1 shrink-0">
+                                <i data-lucide="infinity" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">Số dư không hết hạn</h4>
+                                <p class="text-sm text-slate-600 mt-1">Tiền trong ví VMIED được bảo lưu mãi mãi cho đến khi bạn sử dụng.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Compact Price List (New Design) -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">Bảng giá niêm yết</h3>
+                        <ul class="space-y-3">
+                            <li class="flex justify-between items-center text-sm group">
+                                <span class="flex items-center gap-3 text-slate-700 font-medium"><i data-lucide="scan-search" class="w-4 h-4 text-blue-500"></i> Check Đạo văn</span>
+                                <span class="font-bold text-slate-900 bg-slate-50 px-3 py-1 rounded-full group-hover:bg-brand-50 group-hover:text-brand-700 transition-colors">500 VMIED <span class="text-slate-400 font-normal">/100 từ</span></span>
+                            </li>
+                            <li class="flex justify-between items-center text-sm group">
+                                <span class="flex items-center gap-3 text-slate-700 font-medium"><i data-lucide="bot" class="w-4 h-4 text-purple-500"></i> Check AI Viết</span>
+                                <span class="font-bold text-slate-900 bg-slate-50 px-3 py-1 rounded-full group-hover:bg-brand-50 group-hover:text-brand-700 transition-colors">500 VMIED <span class="text-slate-400 font-normal">/100 từ</span></span>
+                            </li>
+                            <li class="flex justify-between items-center text-sm group">
+                                <span class="flex items-center gap-3 text-slate-700 font-medium"><i data-lucide="spell-check" class="w-4 h-4 text-green-500"></i> Check Ngữ pháp</span>
+                                <span class="font-bold text-slate-900 bg-slate-50 px-3 py-1 rounded-full group-hover:bg-brand-50 group-hover:text-brand-700 transition-colors">500 VMIED <span class="text-slate-400 font-normal">/100 từ</span></span>
+                            </li>
+                            <li class="flex justify-between items-center text-sm group">
+                                <span class="flex items-center gap-3 text-slate-700 font-medium"><i data-lucide="wand-2" class="w-4 h-4 text-indigo-500"></i> Humanize (Viết lại)</span>
+                                <span class="font-bold text-slate-900 bg-slate-50 px-3 py-1 rounded-full group-hover:bg-brand-50 group-hover:text-brand-700 transition-colors">500 VMIED <span class="text-slate-400 font-normal">/100 từ</span></span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: Pricing/Deposit Card -->
+                <div class="relative">
+                    <!-- Decor blobs -->
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+                    <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+
+                    <div class="relative bg-white border border-slate-200 rounded-3xl p-8 shadow-2xl text-center transform transition duration-500">
+                        <div class="inline-block bg-slate-900 text-white px-4 py-1 rounded-full text-xs font-bold mb-6 tracking-wide uppercase">
+                            Tỷ giá quy đổi 1:1
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900">Nạp Ví VMIED</h3>
+                        
+                        <!-- Conversion Display -->
+                        <div class="mt-6 mb-8 py-6 bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+                            <div class="flex items-center justify-center gap-4 text-slate-900">
+                                <span class="text-3xl font-extrabold">1.000₫</span>
+                                <i data-lucide="arrow-right-left" class="text-slate-300 w-5 h-5"></i>
+                                <span class="text-3xl font-extrabold text-brand-600">1.000</span>
+                            </div>
+                            <div class="flex justify-center gap-12 mt-1 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                <span>VNĐ</span>
+                                <span>VMIED</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Select Denominations -->
+                        <div class="text-left mb-2 text-sm font-bold text-slate-700">Chọn mệnh giá nạp nhanh:</div>
+                        <div class="grid grid-cols-3 gap-3 mb-6">
+                            <button onclick="selectAmount(20000)" class="deposit-option py-2 px-1 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold text-sm hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 transition focus:outline-none focus:ring-2 focus:ring-brand-500/20">20.000</button>
+                            <button onclick="selectAmount(50000)" class="deposit-option py-2 px-1 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold text-sm hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 transition focus:outline-none focus:ring-2 focus:ring-brand-500/20">50.000</button>
+                            <button onclick="selectAmount(100000)" class="deposit-option py-2 px-1 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold text-sm hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 transition focus:outline-none focus:ring-2 focus:ring-brand-500/20">100.000</button>
+                            <button onclick="selectAmount(200000)" class="deposit-option py-2 px-1 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold text-sm hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 transition focus:outline-none focus:ring-2 focus:ring-brand-500/20">200.000</button>
+                            <button onclick="selectAmount(500000)" class="deposit-option py-2 px-1 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold text-sm hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 transition focus:outline-none focus:ring-2 focus:ring-brand-500/20">500.000</button>
+                            <button onclick="selectAmount(1000000)" class="deposit-option py-2 px-1 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold text-sm hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 transition focus:outline-none focus:ring-2 focus:ring-brand-500/20">1 Triệu</button>
+                        </div>
+
+                        <!-- Custom Input -->
+                        <div class="relative mb-8">
+                            <label class="block text-left text-sm font-bold text-slate-700 mb-2">Hoặc nhập số khác:</label>
+                            <div class="relative">
+                                <input type="number" id="deposit-amount" class="w-full pl-4 pr-12 py-3 rounded-xl border border-slate-300 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition font-bold text-slate-800 text-lg" placeholder="0">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">VNĐ</span>
+                            </div>
+                        </div>
+
+                        <button onclick="processDeposit()" class="w-full bg-gradient-to-r from-slate-900 to-slate-800 text-white py-4 rounded-xl font-bold hover:shadow-lg hover:-translate-y-0.5 transition flex items-center justify-center gap-2 group">
+                            <span>Thanh toán ngay</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                        
+                        <div class="mt-6 flex justify-center gap-4 opacity-60 grayscale">
+                            <div class="h-6 w-10 bg-blue-800 rounded flex items-center justify-center text-[8px] text-white font-bold">VISA</div>
+                            <div class="h-6 w-10 bg-pink-600 rounded flex items-center justify-center text-[8px] text-white font-bold">MOMO</div>
+                            <div class="h-6 w-10 bg-green-600 rounded flex items-center justify-center text-[8px] text-white font-bold">QR</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ SECTION -->
+    <section class="py-24 bg-white border-t border-slate-100">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center text-slate-900 mb-12">Câu hỏi thường gặp</h2>
+            
+            <div class="space-y-4">
+                <details class="group bg-slate-50 rounded-xl p-6 cursor-pointer">
+                    <summary class="flex justify-between items-center font-bold text-slate-900">
+                        Văn bản của tôi có bị lưu lại không?
+                        <span class="transition group-open:rotate-180"><i data-lucide="chevron-down"></i></span>
+                    </summary>
+                    <p class="text-slate-600 mt-4 leading-relaxed text-sm">
+                        Tuyệt đối không. AI Vmied tôn trọng quyền sở hữu trí tuệ. Văn bản của bạn chỉ được xử lý tạm thời để đưa ra kết quả và sẽ bị xóa ngay sau đó. Chúng tôi không sử dụng dữ liệu của bạn để huấn luyện AI.
+                    </p>
+                </details>
+
+                <details class="group bg-slate-50 rounded-xl p-6 cursor-pointer">
+                    <summary class="flex justify-between items-center font-bold text-slate-900">
+                        VMIED có hết hạn sử dụng không?
+                        <span class="transition group-open:rotate-180"><i data-lucide="chevron-down"></i></span>
+                    </summary>
+                    <p class="text-slate-600 mt-4 leading-relaxed text-sm">
+                        Không. Số lượng VMIED bạn đã nạp sẽ được bảo lưu vĩnh viễn trong tài khoản cho đến khi bạn sử dụng hết.
+                    </p>
+                </details>
+
+                <details class="group bg-slate-50 rounded-xl p-6 cursor-pointer">
+                    <summary class="flex justify-between items-center font-bold text-slate-900">
+                        Độ chính xác so với Turnitin như thế nào?
+                        <span class="transition group-open:rotate-180"><i data-lucide="chevron-down"></i></span>
+                    </summary>
+                    <p class="text-slate-600 mt-4 leading-relaxed text-sm">
+                        AI Vmied sử dụng cơ sở dữ liệu tương đương và tối ưu hóa sâu hơn cho tiếng Việt. Tuy nhiên, mỗi công cụ có thuật toán riêng, chúng tôi khuyến nghị sử dụng AI Vmied như một công cụ kiểm tra sơ bộ đáng tin cậy.
+                    </p>
+                </details>
+
+                <details class="group bg-slate-50 rounded-xl p-6 cursor-pointer">
+                    <summary class="flex justify-between items-center font-bold text-slate-900">
+                        Làm sao để nạp tiền?
+                        <span class="transition group-open:rotate-180"><i data-lucide="chevron-down"></i></span>
+                    </summary>
+                    <p class="text-slate-600 mt-4 leading-relaxed text-sm">
+                        Bạn có thể nạp tiền thông qua chuyển khoản ngân hàng (VietQR), ví Momo hoặc thẻ Visa/Mastercard ngay trong trang quản lý tài khoản sau khi đăng nhập.
+                    </p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- NEW: CLEANER CONTACT SECTION (OPEN LAYOUT) -->
+    <section id="contact-section" class="py-24 relative overflow-hidden scroll-mt-24">
+        <!-- Animated Background Glows -->
+        <div class="absolute top-1/2 left-0 -translate-y-1/2 w-[600px] h-[600px] bg-brand-500/10 rounded-full blur-[120px] -z-10 animate-pulse-slow"></div>
+        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-accent-500/10 rounded-full blur-[100px] -z-10"></div>
+        
+        <!-- Floating Decor Icons -->
+        <div class="absolute left-[10%] top-[20%] text-brand-200 animate-float opacity-50 -z-10">
+            <i data-lucide="message-circle" class="w-12 h-12"></i>
+        </div>
+        <div class="absolute right-[5%] bottom-[20%] text-accent-200 animate-float opacity-50 -z-10" style="animation-delay: 2s;">
+            <i data-lucide="send" class="w-16 h-16"></i>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                
+                <!-- Left Side: Inspiring Text & Visual -->
+                <div class="space-y-8">
+                    <div>
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-brand-600 text-xs font-bold uppercase tracking-wider mb-4 border border-blue-100">
+                            <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+                            Hỗ trợ 24/7
+                        </span>
+                        <h2 class="text-5xl md:text-6xl font-extrabold text-slate-900 leading-[1.1]">
+                            Hãy để chúng tôi <br>
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-accent-600">lắng nghe bạn.</span>
+                        </h2>
+                        <p class="text-lg text-slate-600 mt-6 leading-relaxed max-w-lg">
+                            Dù bạn là sinh viên, giảng viên hay đối tác doanh nghiệp, VMIED luôn sẵn sàng giải đáp mọi thắc mắc về công nghệ và dịch vụ.
+                        </p>
+                    </div>
+
+                    <!-- Interactive Stats/Social (Subtle) -->
+                    <div class="flex items-center gap-8 pt-8 border-t border-slate-100">
+                        <div>
+                            <p class="text-3xl font-bold text-slate-900">~15p</p>
+                            <p class="text-sm text-slate-500">Thời gian phản hồi</p>
+                        </div>
+                        <div class="w-px h-12 bg-slate-200"></div>
+                        <div class="flex gap-4">
+                            <a href="#" class="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-brand-600 hover:border-brand-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                                <i data-lucide="facebook" class="w-5 h-5"></i>
+                            </a>
+                            <a href="#" class="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-blue-700 hover:border-blue-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                                <i data-lucide="linkedin" class="w-5 h-5"></i>
+                            </a>
+                            <a href="#" class="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-red-600 hover:border-red-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                                <i data-lucide="mail" class="w-5 h-5"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Floating Glass Form -->
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-brand-500 to-accent-500 rounded-3xl blur-2xl opacity-20 transform rotate-3 scale-95"></div>
+                    <form onsubmit="event.preventDefault(); alert('Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất.');" class="relative bg-white/80 backdrop-blur-xl p-8 md:p-10 rounded-3xl shadow-xl border border-white/50 ring-1 ring-slate-900/5">
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-sm font-semibold text-slate-700 ml-1">Họ tên</label>
+                                    <input type="text" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 border-0 ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all outline-none" placeholder="Tên của bạn">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-sm font-semibold text-slate-700 ml-1">Email</label>
+                                    <input type="email" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 border-0 ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all outline-none" placeholder="email@domain.com">
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <label class="text-sm font-semibold text-slate-700 ml-1">Vấn đề cần hỗ trợ</label>
+                                <select class="w-full px-4 py-3.5 rounded-xl bg-slate-50 border-0 ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all outline-none text-slate-600 cursor-pointer">
+                                    <option>Tư vấn về gói VMIED</option>
+                                    <option>Báo lỗi kỹ thuật</option>
+                                    <option>Hợp tác doanh nghiệp</option>
+                                    <option>Khác</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-sm font-semibold text-slate-700 ml-1">Nội dung</label>
+                                <textarea rows="4" class="w-full px-4 py-3.5 rounded-xl bg-slate-50 border-0 ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all outline-none resize-none" placeholder="Chia sẻ với chúng tôi..."></textarea>
+                            </div>
+
+                            <button type="submit" class="w-full py-4 rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 text-white font-bold hover:shadow-lg hover:shadow-brand-500/30 hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-2 group">
+                                Gửi tin nhắn
+                                <i data-lucide="send" class="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- MINI HERO CTA -->
+    <section class="py-16 bg-gradient-to-r from-brand-600 to-accent-600 text-white text-center">
+        <div class="max-w-4xl mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">Sẵn sàng nâng tầm bài viết của bạn?</h2>
+            <p class="text-blue-100 mb-8 text-lg">Đăng ký ngay hôm nay để nhận ưu đãi cho thành viên mới.</p>
+            <div class="flex justify-center gap-4">
+                <button class="px-8 py-3 bg-white text-brand-600 font-bold rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
+                    Đăng ký ngay
+                </button>
+                <button class="px-8 py-3 bg-brand-700/50 text-white border border-white/20 font-bold rounded-full hover:bg-brand-700 transition-all">
+                    Liên hệ tư vấn
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="contact" class="bg-slate-900 text-slate-300 pt-20 pb-10 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 border-b border-slate-800 pb-12 mb-12">
+                <!-- Info Column -->
+                <div class="lg:col-span-5">
+                    <div class="flex items-center gap-2 mb-6 text-white">
+                        <div class="w-8 h-8 bg-brand-600 rounded-md flex items-center justify-center font-bold">V</div>
+                        <span class="text-xl font-bold">AI Vmied</span>
+                    </div>
+                    <p class="text-sm mb-6 leading-relaxed text-slate-400">
+                        VIỆN NGHIÊN CỨU PHÁT TRIỂN GIÁO DỤC VIỆT MỸ<br>
+                        Đơn vị tiên phong ứng dụng công nghệ trong giáo dục.
+                    </p>
+                    <div class="space-y-3 text-xs text-slate-500 bg-slate-800/50 p-4 rounded-lg">
+                        <p class="flex gap-2"><i data-lucide="file-check" class="w-4 h-4 shrink-0"></i> <span>Quyết định thành lập số: 18-51/QĐ/VAYSE-VPNB (12/07/2018) - TW Hội Trí Thức KH&CN Trẻ VN.</span></p>
+                        <p class="flex gap-2"><i data-lucide="award" class="w-4 h-4 shrink-0"></i> <span>Giấy CNĐKHĐ: A-1953 (31/07/2018) - Bộ Khoa học và Công nghệ.</span></p>
+                    </div>
+                </div>
+                
+                <!-- Contact Column -->
+                <div class="lg:col-span-4">
+                    <h4 class="text-white font-bold mb-6 text-lg">Liên hệ</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li class="flex items-start gap-3 group">
+                            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-brand-600 transition-colors">
+                                <i data-lucide="map-pin" class="w-4 h-4"></i>
+                            </div>
+                            <span class="mt-1">94/44 Lưu Chí Hiếu, P. Tây Thạnh, TP. HCM</span>
+                        </li>
+                        <li class="flex items-center gap-3 group">
+                            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-brand-600 transition-colors">
+                                <i data-lucide="phone" class="w-4 h-4"></i>
+                            </div>
+                            <span>0903328995</span>
+                        </li>
+                        <li class="flex items-center gap-3 group">
+                            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-brand-600 transition-colors">
+                                <i data-lucide="mail" class="w-4 h-4"></i>
+                            </div>
+                            <a href="mailto:info@vmied.edu.vn" class="hover:text-brand-400 transition">info@vmied.edu.vn</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Links Column -->
+                <div class="lg:col-span-3">
+                    <h4 class="text-white font-bold mb-6 text-lg">Hỗ trợ</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="#" class="hover:text-brand-400 transition flex items-center gap-2"><i data-lucide="chevron-right" class="w-3 h-3"></i> Hướng dẫn sử dụng</a></li>
+                        <li><a href="#" class="hover:text-brand-400 transition flex items-center gap-2"><i data-lucide="chevron-right" class="w-3 h-3"></i> Chính sách bảo mật</a></li>
+                        <li><a href="#" class="hover:text-brand-400 transition flex items-center gap-2"><i data-lucide="chevron-right" class="w-3 h-3"></i> Điều khoản dịch vụ</a></li>
+                        <li><a href="#" class="hover:text-brand-400 transition flex items-center gap-2"><i data-lucide="chevron-right" class="w-3 h-3"></i> Câu hỏi thường gặp</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="flex flex-col md:flex-row justify-between items-center text-sm text-slate-600">
+                <p>&copy; 2025 VMIED Institute. All rights reserved.</p>
+                <div class="flex gap-4 mt-4 md:mt-0">
+                    <a href="#" class="hover:text-white transition"><i data-lucide="facebook" class="w-5 h-5"></i></a>
+                    <a href="#" class="hover:text-white transition"><i data-lucide="linkedin" class="w-5 h-5"></i></a>
+                    <a href="#" class="hover:text-white transition"><i data-lucide="youtube" class="w-5 h-5"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Deposit Logic
+        function selectAmount(amount) {
+            const input = document.getElementById('deposit-amount');
+            input.value = amount;
+            
+            // Visual feedback for buttons
+            document.querySelectorAll('.deposit-option').forEach(btn => {
+                btn.classList.remove('border-brand-500', 'bg-brand-50', 'text-brand-600', 'ring-2', 'ring-brand-500/20');
+                btn.classList.add('border-slate-200', 'bg-white', 'text-slate-600');
+            });
+            event.currentTarget.classList.remove('border-slate-200', 'bg-white', 'text-slate-600');
+            event.currentTarget.classList.add('border-brand-500', 'bg-brand-50', 'text-brand-600', 'ring-2', 'ring-brand-500/20');
+        }
+
+        function processDeposit() {
+            const input = document.getElementById('deposit-amount');
+            const amount = parseInt(input.value);
+
+            if (!amount || amount < 10000) {
+                alert('Vui lòng nhập số tiền nạp tối thiểu là 10.000 VNĐ');
+                return;
+            }
+
+            // Format currency for display
+            const formattedAmount = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+            
+            // Simulation
+            const confirmMsg = `Bạn đang thực hiện nạp ${formattedAmount} vào ví VMIED.\n\nHệ thống sẽ chuyển bạn đến cổng thanh toán...`;
+            if(confirm(confirmMsg)) {
+                // In a real app, redirect here
+                alert('Đang chuyển hướng đến cổng thanh toán (Momo/Banking)...');
+            }
+        }
+
+        // Word Count Logic
+        const textarea = document.getElementById('demo-input');
+        const countDisplay = document.getElementById('word-count');
+        
+        textarea.addEventListener('input', function() {
+            const text = this.value.trim();
+            const words = text ? text.split(/\s+/).length : 0;
+            countDisplay.innerText = words;
+            if (words > 200) {
+                countDisplay.classList.add('text-red-500');
+            } else {
+                countDisplay.classList.remove('text-red-500');
+            }
+        });
+
+        // Simulate Process
+        function simulateProcess(type) {
+            const text = textarea.value.trim();
+            if (!text) {
+                alert("Vui lòng nhập văn bản để kiểm tra!");
+                return;
+            }
+
+            const overlay = document.getElementById('loading-overlay');
+            const resultEmpty = document.getElementById('result-empty');
+            const resultFilled = document.getElementById('result-filled');
+            
+            // Chart Elements
+            const chartRing = document.getElementById('chart-ring');
+            const chartScore = document.getElementById('chart-score');
+            const chartLabel = document.getElementById('chart-label');
+            const humanPercent = document.getElementById('human-percent');
+            const aiPercent = document.getElementById('ai-percent');
+            const resultMsg = document.getElementById('result-message');
+
+            overlay.classList.remove('hidden');
+            // Hide previous results
+            resultFilled.classList.remove('flex');
+            resultFilled.classList.add('hidden');
+
+            // Fake processing time
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                resultEmpty.classList.add('hidden');
+                resultFilled.classList.remove('hidden');
+                resultFilled.classList.add('flex');
+                
+                // Logic simulation
+                if(type === 'ai') {
+                    // Simulating an AI result
+                    chartRing.style.backgroundImage = 'conic-gradient(#ef4444 85%, #f1f5f9 0)'; // Red dominant
+                    chartScore.innerText = '85%';
+                    chartScore.className = 'text-2xl font-extrabold text-red-600';
+                    chartLabel.innerText = 'AI Probability';
+                    humanPercent.innerText = '15%';
+                    aiPercent.innerText = '85%';
+                    resultMsg.innerHTML = '<i data-lucide="alert-triangle" class="w-4 h-4"></i> Khả năng cao do AI viết!';
+                    resultMsg.className = 'text-sm text-red-600 font-bold flex items-center justify-center gap-2';
+                } else if (type === 'plagiarism') {
+                    // Simulating a Good result
+                    chartRing.style.backgroundImage = 'conic-gradient(#22c55e 100%, #f1f5f9 0)'; // Green dominant
+                    chartScore.innerText = '100%';
+                    chartScore.className = 'text-2xl font-extrabold text-green-600';
+                    chartLabel.innerText = 'Unique';
+                    humanPercent.innerText = '100%';
+                    aiPercent.innerText = '0%';
+                    resultMsg.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4"></i> Văn bản hoàn toàn sạch!';
+                    resultMsg.className = 'text-sm text-green-600 font-bold flex items-center justify-center gap-2';
+                }
+                
+                // Re-init icons for dynamic content
+                lucide.createIcons();
+                
+            }, 2000);
+        }
+
+        // Mobile Menu
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>

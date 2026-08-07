@@ -1,0 +1,11 @@
+<?php
+
+namespace App\Controllers;
+
+use Neo\Core\App;
+
+class {{name}} {
+    public function index() {
+        return view('{{view}}');
+    }
+}

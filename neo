@@ -1,0 +1,41 @@
+#!/usr/bin/env php
+<?php
+require __DIR__ . '/vendor/autoload.php';
+use Neo\Core\App;
+use Neo\Console\Generator;
+
+$app = new App(__DIR__);
+$generator = new Generator();
+
+$args = $argv;
+$cmd = $args[1] ?? 'help';
+$param = $args[2] ?? null;
+
+echo "Neo CLI v6.0\n";
+
+switch ($cmd) {
+    case 'serve':
+        passthru('php -S localhost:8000 -t public');
+        break;
+    case 'make:controller':
+        $generator->makeController($param);
+        break;
+    case 'make:model':
+        $generator->makeModel($param);
+        break;
+    case 'make:plugin':
+        $generator->makePlugin($param);
+        break;
+
+    case 'build': // NEW COMMAND
+        $app->compiler->build(dirname(__DIR__));
+        break;
+
+    case 'queue:work':
+        $app->queue->work();
+        break;
+
+    default:
+        echo "Commands: serve, make:controller, make:model, make:plugin, build\n";
+        break;
+}

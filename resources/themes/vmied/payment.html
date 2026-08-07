@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nạp VMIED - AI Vmied</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Be Vietnam Pro"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9', // Sky blue
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        },
+                        accent: {
+                            500: '#8b5cf6', // Violet
+                            600: '#7c3aed',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'slide-up': 'slideUp 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
+        }
+        .method-active {
+            border-color: #0ea5e9; /* brand-500 */
+            background-color: #f0f9ff; /* brand-50 */
+            color: #0284c7; /* brand-600 */
+        }
+        .amount-active {
+            background-color: #0f172a; /* slate-900 */
+            color: white;
+            border-color: #0f172a;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen font-sans selection:bg-brand-500/20">
+
+    <!-- BACKGROUND AMBIENCE -->
+    <div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+        <div class="absolute top-0 left-1/4 w-[800px] h-[800px] bg-brand-200/30 rounded-full blur-[120px] mix-blend-multiply animate-pulse"></div>
+        <div class="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-accent-200/30 rounded-full blur-[100px] mix-blend-multiply animate-pulse" style="animation-delay: 2s"></div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <nav class="sticky top-4 z-40 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto bg-white/80 backdrop-blur-xl border border-white/50 shadow-lg shadow-slate-200/50 rounded-2xl px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-12">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='dashboard.html'">
+                    <div class="w-10 h-10 bg-gradient-to-br from-brand-600 to-accent-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-500/20">V</div>
+                    <span class="font-bold text-xl tracking-tight text-slate-900 hidden sm:block">AI Vmied</span>
+                </div>
+                <div class="hidden md:flex items-center gap-1 bg-slate-100/50 p-1 rounded-xl">
+                    <a href="dashboard.html" class="px-4 py-2 rounded-lg text-slate-500 hover:text-slate-900 font-medium text-sm transition-all hover:bg-white/50">Dashboard</a>
+                    <a href="history.html" class="px-4 py-2 rounded-lg text-slate-500 hover:text-slate-900 font-medium text-sm transition-all hover:bg-white/50">Lịch sử</a>
+                    <a href="#" class="px-4 py-2 rounded-lg bg-white text-brand-700 font-bold shadow-sm text-sm transition-all">Nạp tiền</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="hidden sm:flex items-center gap-3 bg-slate-900 text-white pl-4 pr-1.5 py-1.5 rounded-full shadow-lg shadow-slate-900/10 hover:shadow-slate-900/20 transition-all cursor-pointer">
+                    <div class="flex flex-col items-start leading-none mr-2">
+                        <span class="text-[10px] text-slate-400 font-medium">Số dư ví</span>
+                        <span class="text-sm font-bold">15.000 <span class="text-brand-400">V</span></span>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center"><i data-lucide="plus" class="w-4 h-4 text-white"></i></div>
+                </div>
+                <div class="w-px h-8 bg-slate-200 hidden sm:block"></div>
+                <div class="flex items-center gap-3 cursor-pointer" onclick="openProfile()">
+                    <div class="text-right hidden lg:block">
+                        <p class="text-sm font-bold text-slate-900">Minh Anh</p>
+                        <p class="text-[10px] font-medium text-slate-500 uppercase tracking-wide">Student Pro</p>
+                    </div>
+                    <div class="relative">
+                        <img src="https://ui-avatars.com/api/?name=Minh+Anh&background=0ea5e9&color=fff" alt="User" class="w-10 h-10 rounded-full ring-2 ring-white shadow-md">
+                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-fade-in">
+
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-end gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Nạp VMIED</h1>
+                <p class="text-slate-500 mt-1">Nạp tiền an toàn, nhanh chóng với tỷ giá 1:1.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- LEFT COLUMN: Payment Configuration -->
+            <div class="lg:col-span-8 space-y-6">
+                
+                <!-- 1. Select Amount -->
+                <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-8 animate-slide-up">
+                    <h3 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs">1</span>
+                        Chọn mệnh giá nạp
+                    </h3>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <button onclick="selectAmount(20000)" class="amount-btn py-4 rounded-xl border border-slate-200 font-bold text-slate-600 hover:border-brand-500 hover:text-brand-600 transition-all focus:outline-none" data-value="20000">20.000 ₫</button>
+                        <button onclick="selectAmount(50000)" class="amount-btn py-4 rounded-xl border border-slate-200 font-bold text-slate-600 hover:border-brand-500 hover:text-brand-600 transition-all focus:outline-none" data-value="50000">50.000 ₫</button>
+                        <button onclick="selectAmount(100000)" class="amount-btn py-4 rounded-xl border border-slate-200 font-bold text-slate-600 hover:border-brand-500 hover:text-brand-600 transition-all focus:outline-none" data-value="100000">100.000 ₫</button>
+                        <button onclick="selectAmount(200000)" class="amount-btn py-4 rounded-xl border border-slate-200 font-bold text-slate-600 hover:border-brand-500 hover:text-brand-600 transition-all focus:outline-none" data-value="200000">200.000 ₫</button>
+                        <button onclick="selectAmount(500000)" class="amount-btn py-4 rounded-xl border border-slate-200 font-bold text-slate-600 hover:border-brand-500 hover:text-brand-600 transition-all focus:outline-none" data-value="500000">500.000 ₫</button>
+                        <button onclick="selectAmount(1000000)" class="amount-btn py-4 rounded-xl border border-slate-200 font-bold text-slate-600 hover:border-brand-500 hover:text-brand-600 transition-all focus:outline-none" data-value="1000000">1 Triệu ₫</button>
+                        <div class="col-span-2 relative">
+                            <input type="number" id="custom-amount" class="w-full h-full pl-4 pr-12 rounded-xl border border-slate-200 font-bold text-slate-900 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 transition-all placeholder:text-slate-400 placeholder:font-normal" placeholder="Nhập số khác...">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">VNĐ</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-brand-50 rounded-xl p-4 flex items-center justify-between border border-brand-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-brand-600 shadow-sm"><i data-lucide="coins" class="w-5 h-5"></i></div>
+                            <div>
+                                <p class="text-xs text-brand-600 font-bold uppercase tracking-wider">Bạn sẽ nhận được</p>
+                                <p class="text-sm text-brand-700">Tỷ giá quy đổi 1 VNĐ = 1 VMIED</p>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-extrabold text-brand-700" id="vmied-receive">0 V</div>
+                    </div>
+                </div>
+
+                <!-- 2. Select Method -->
+                <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-8 animate-slide-up" style="animation-delay: 0.1s;">
+                    <h3 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs">2</span>
+                        Phương thức thanh toán
+                    </h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                        <button onclick="selectMethod('qr')" id="method-qr" class="method-btn method-active p-4 rounded-xl border border-slate-200 flex flex-col items-center gap-3 transition-all hover:bg-slate-50 group">
+                            <i data-lucide="qr-code" class="w-8 h-8 text-slate-400 group-[.method-active]:text-brand-500"></i>
+                            <span class="font-bold text-sm">Chuyển khoản QR</span>
+                        </button>
+                        <button onclick="selectMethod('momo')" id="method-momo" class="method-btn p-4 rounded-xl border border-slate-200 flex flex-col items-center gap-3 transition-all hover:bg-slate-50 group">
+                            <i data-lucide="smartphone" class="w-8 h-8 text-slate-400 group-[.method-active]:text-pink-500"></i>
+                            <span class="font-bold text-sm">Ví Momo</span>
+                        </button>
+                        <button onclick="selectMethod('card')" id="method-card" class="method-btn p-4 rounded-xl border border-slate-200 flex flex-col items-center gap-3 transition-all hover:bg-slate-50 group">
+                            <i data-lucide="credit-card" class="w-8 h-8 text-slate-400 group-[.method-active]:text-blue-600"></i>
+                            <span class="font-bold text-sm">Thẻ quốc tế</span>
+                        </button>
+                    </div>
+
+                    <!-- Payment Details: QR Code (Default) -->
+                    <div id="detail-qr" class="payment-detail bg-slate-50 rounded-xl p-6 border border-slate-200 flex flex-col sm:flex-row gap-8 items-center">
+                        <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-100 shrink-0">
+                            <!-- Placeholder QR -->
+                            <div class="w-40 h-40 bg-slate-900 flex items-center justify-center text-white rounded-lg">
+                                <i data-lucide="qr-code" class="w-16 h-16"></i>
+                            </div>
+                        </div>
+                        <div class="space-y-4 w-full">
+                            <div>
+                                <p class="text-xs text-slate-500 font-bold uppercase">Ngân hàng</p>
+                                <p class="font-bold text-slate-900 flex items-center gap-2">
+                                    <span class="w-6 h-6 bg-green-600 text-white rounded flex items-center justify-center text-[10px] font-bold">VCB</span> Vietcombank
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-bold uppercase">Số tài khoản</p>
+                                <div class="flex items-center gap-2">
+                                    <p class="font-mono font-bold text-lg text-slate-900">0071000123456</p>
+                                    <button class="text-brand-600 hover:text-brand-700" title="Sao chép"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-bold uppercase">Chủ tài khoản</p>
+                                <p class="font-bold text-slate-900">VIEN NCPT GIAO DUC VIET MY</p>
+                            </div>
+                            <div class="p-3 bg-yellow-50 text-yellow-700 text-xs rounded-lg border border-yellow-100 flex items-start gap-2">
+                                <i data-lucide="info" class="w-4 h-4 mt-0.5 shrink-0"></i>
+                                <span>Hệ thống sẽ tự động cộng VMIED sau 1-3 phút khi nhận được tiền. Vui lòng không sửa nội dung chuyển khoản.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Details: Momo (Hidden) -->
+                    <div id="detail-momo" class="payment-detail hidden bg-pink-50 rounded-xl p-8 border border-pink-100 text-center">
+                        <div class="w-16 h-16 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                            <i data-lucide="smartphone" class="w-8 h-8"></i>
+                        </div>
+                        <h4 class="font-bold text-pink-700 text-lg mb-2">Thanh toán qua Ví Momo</h4>
+                        <p class="text-pink-600/80 text-sm mb-6">Bạn sẽ được chuyển hướng đến ứng dụng Momo để hoàn tất thanh toán.</p>
+                        <button class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-pink-500/30 transition-all">
+                            Mở ứng dụng Momo
+                        </button>
+                    </div>
+
+                    <!-- Payment Details: Card (Hidden) -->
+                    <div id="detail-card" class="payment-detail hidden bg-slate-50 rounded-xl p-6 border border-slate-200">
+                        <div class="max-w-sm mx-auto space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Số thẻ</label>
+                                <div class="relative">
+                                    <input type="text" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition font-mono" placeholder="0000 0000 0000 0000">
+                                    <i data-lucide="credit-card" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Hết hạn</label>
+                                    <input type="text" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition font-mono" placeholder="MM/YY">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">CVC</label>
+                                    <input type="text" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition font-mono" placeholder="123">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Tên chủ thẻ</label>
+                                <input type="text" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition" placeholder="NGUYEN VAN A">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Summary & Support -->
+            <div class="lg:col-span-4 space-y-6">
+                <!-- Order Summary -->
+                <div class="bg-white rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/50 p-6 sticky top-28 animate-slide-up" style="animation-delay: 0.2s;">
+                    <h3 class="font-bold text-slate-900 mb-6 text-lg">Thông tin đơn hàng</h3>
+                    
+                    <div class="space-y-4 mb-6 pb-6 border-b border-slate-100">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500">Số tiền nạp</span>
+                            <span class="font-bold text-slate-900" id="summary-amount">0 ₫</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500">Phí giao dịch</span>
+                            <span class="font-bold text-green-600">Miễn phí</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500">Quy đổi</span>
+                            <span class="font-bold text-slate-900">1 : 1</span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-end mb-8">
+                        <span class="text-slate-500 font-medium">Tổng thanh toán</span>
+                        <span class="text-3xl font-extrabold text-brand-600" id="summary-total">0 ₫</span>
+                    </div>
+
+                    <button class="w-full bg-slate-900 hover:bg-brand-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center gap-2 group">
+                        Xác nhận thanh toán
+                        <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+
+                    <p class="text-center text-xs text-slate-400 mt-4">
+                        Bằng việc thanh toán, bạn đồng ý với <a href="#" class="text-brand-600 hover:underline">Điều khoản dịch vụ</a> của chúng tôi.
+                    </p>
+                </div>
+
+                <!-- Support Info -->
+                <div class="bg-blue-50 rounded-2xl p-6 border border-blue-100 animate-slide-up" style="animation-delay: 0.3s;">
+                    <h4 class="font-bold text-blue-800 mb-2 flex items-center gap-2">
+                        <i data-lucide="life-buoy" class="w-4 h-4"></i> Cần hỗ trợ?
+                    </h4>
+                    <p class="text-sm text-blue-700/80 mb-4 leading-relaxed">
+                        Nếu bạn gặp vấn đề khi nạp tiền, vui lòng liên hệ hotline hoặc Zalo để được hỗ trợ ngay lập tức.
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <a href="#" class="flex-1 bg-white hover:bg-blue-100 text-blue-700 text-xs font-bold py-2.5 rounded-lg border border-blue-200 text-center transition">
+                            Hotline 0903328995
+                        </a>
+                        <a href="#" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-lg text-center transition">
+                            Chat Zalo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions Mini -->
+        <section class="mt-12 pt-12 border-t border-slate-200">
+            <h3 class="font-bold text-slate-900 mb-6 text-lg">Giao dịch gần đây</h3>
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-slate-400 uppercase bg-slate-50">
+                        <tr>
+                            <th class="px-6 py-4 font-bold">Mã GD</th>
+                            <th class="px-6 py-4 font-bold">Số tiền</th>
+                            <th class="px-6 py-4 font-bold">Trạng thái</th>
+                            <th class="px-6 py-4 font-bold text-right">Ngày</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-6 py-4 font-mono text-slate-500">TRX-982371</td>
+                            <td class="px-6 py-4 font-bold text-slate-900">50.000 ₫</td>
+                            <td class="px-6 py-4"><span class="px-2 py-1 bg-green-50 text-green-600 rounded text-xs font-bold border border-green-100">Thành công</span></td>
+                            <td class="px-6 py-4 text-right text-slate-500">28/12/2024</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-6 py-4 font-mono text-slate-500">TRX-982110</td>
+                            <td class="px-6 py-4 font-bold text-slate-900">200.000 ₫</td>
+                            <td class="px-6 py-4"><span class="px-2 py-1 bg-green-50 text-green-600 rounded text-xs font-bold border border-green-100">Thành công</span></td>
+                            <td class="px-6 py-4 text-right text-slate-500">20/12/2024</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ACCOUNT DRAWER (Reuse) -->
+    <div id="profile-drawer" class="fixed inset-0 z-50 hidden">
+        <div onclick="closeProfile()" class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity opacity-0" id="drawer-backdrop"></div>
+        <div class="absolute top-0 right-0 h-full w-80 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 ease-out flex flex-col" id="drawer-content">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="font-bold text-lg text-slate-900">Tài khoản</h3>
+                <button onclick="closeProfile()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-6 flex flex-col items-center text-center border-b border-slate-100">
+                <div class="relative mb-4">
+                    <img src="https://ui-avatars.com/api/?name=Minh+Anh&background=0ea5e9&color=fff&size=128" alt="User" class="w-20 h-20 rounded-full ring-4 ring-slate-50 shadow-md">
+                    <span class="absolute bottom-0 right-0 w-5 h-5 bg-green-500 border-4 border-white rounded-full"></span>
+                </div>
+                <h4 class="text-xl font-bold text-slate-900">Minh Anh</h4>
+                <p class="text-sm text-slate-500 mb-3">minhanh@student.edu.vn</p>
+                <span class="px-3 py-1 bg-brand-50 text-brand-600 text-xs font-bold rounded-full uppercase tracking-wider border border-brand-100">Student Pro</span>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4">
+                <nav class="space-y-1">
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-brand-600 font-medium transition group"><i data-lucide="user" class="w-5 h-5 text-slate-400 group-hover:text-brand-500 transition"></i> Thông tin cá nhân</a>
+                    <a href="history.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-brand-600 font-medium transition group"><i data-lucide="history" class="w-5 h-5 text-slate-400 group-hover:text-brand-500 transition"></i> Lịch sử giao dịch</a>
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-brand-600 font-medium transition group"><i data-lucide="lock" class="w-5 h-5 text-slate-400 group-hover:text-brand-500 transition"></i> Đổi mật khẩu</a>
+                </nav>
+            </div>
+            <div class="p-6 border-t border-slate-100">
+                <button onclick="alert('Đã đăng xuất!')" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition"><i data-lucide="log-out" class="w-4 h-4"></i> Đăng xuất</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        lucide.createIcons();
+
+        // Amount Selection
+        function selectAmount(amount) {
+            // Update custom input
+            document.getElementById('custom-amount').value = amount;
+            updateSummary(amount);
+            
+            // Visual Active State
+            document.querySelectorAll('.amount-btn').forEach(btn => {
+                if(parseInt(btn.getAttribute('data-value')) === amount) {
+                    btn.classList.add('amount-active');
+                    btn.classList.remove('text-slate-600', 'border-slate-200');
+                } else {
+                    btn.classList.remove('amount-active');
+                    btn.classList.add('text-slate-600', 'border-slate-200');
+                }
+            });
+        }
+
+        // Custom Amount Input Listener
+        const customInput = document.getElementById('custom-amount');
+        customInput.addEventListener('input', function() {
+            // Reset buttons
+            document.querySelectorAll('.amount-btn').forEach(btn => {
+                btn.classList.remove('amount-active');
+                btn.classList.add('text-slate-600', 'border-slate-200');
+            });
+            updateSummary(this.value);
+        });
+
+        // Update Summary Function
+        function updateSummary(val) {
+            const amount = parseInt(val) || 0;
+            const formatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+            
+            document.getElementById('vmied-receive').innerText = new Intl.NumberFormat('vi-VN').format(amount) + ' V';
+            document.getElementById('summary-amount').innerText = formatted;
+            document.getElementById('summary-total').innerText = formatted;
+        }
+
+        // Method Selection
+        function selectMethod(method) {
+            // Visual Update Buttons
+            document.querySelectorAll('.method-btn').forEach(btn => {
+                btn.classList.remove('method-active');
+            });
+            document.getElementById('method-' + method).classList.add('method-active');
+
+            // Toggle Details
+            document.querySelectorAll('.payment-detail').forEach(el => el.classList.add('hidden'));
+            document.getElementById('detail-' + method).classList.remove('hidden');
+        }
+
+        // Drawer Logic
+        function openProfile() {
+            const drawer = document.getElementById('profile-drawer');
+            const backdrop = document.getElementById('drawer-backdrop');
+            const content = document.getElementById('drawer-content');
+            drawer.classList.remove('hidden');
+            setTimeout(() => {
+                backdrop.classList.remove('opacity-0');
+                content.classList.remove('translate-x-full');
+            }, 10);
+        }
+
+        function closeProfile() {
+            const drawer = document.getElementById('profile-drawer');
+            const backdrop = document.getElementById('drawer-backdrop');
+            const content = document.getElementById('drawer-content');
+            backdrop.classList.add('opacity-0');
+            content.classList.add('translate-x-full');
+            setTimeout(() => {
+                drawer.classList.add('hidden');
+            }, 300);
+        }
+
+        // Init with default
+        selectAmount(50000);
+    </script>
+</body>
+</html>
