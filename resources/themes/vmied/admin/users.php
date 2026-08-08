@@ -1,4 +1,4 @@
-<?php $this->extend('layouts/app') ?>
+<?php $this->extend('layouts/admin') ?>
 
 <?php $this->section('content') ?>
     <div class="container pt-5 mt-5">

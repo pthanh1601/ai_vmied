@@ -29,6 +29,13 @@ class AdminController
         ]);
     }
 
+    public function Statistics() {
+        return view('admin/statistics', [
+            'title' => 'Thống kê',
+            'user'  => $this->app->request->user
+        ]);
+    }
+
     public function SetVip() {
         $uuid = request('uuid');
         $type = request('type'); // 2: VIP Affiliate, 0: Normal, 1: Admin
