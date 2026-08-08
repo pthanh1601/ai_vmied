@@ -63,6 +63,7 @@
                                         data-type="<?= $u['type'] ?>"
                                         data-point="<?= $u['point'] ?? 0 ?>"
                                         data-org="<?= htmlspecialchars($u['organization'] ?? '', ENT_QUOTES) ?>"
+                                        data-avatar="<?= htmlspecialchars($u['avatar'] ?? '', ENT_QUOTES) ?>"
                                         title="Sửa">
                                         <i data-lucide="edit-2" width="16"></i> Sửa
                                     </button>
@@ -89,7 +90,7 @@
     <div class="modal fade" id="addUserModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 border-0 shadow">
-                <form id="formAddUser" onsubmit="event.preventDefault(); window.submitAddUser(this);" method="POST">
+                <form id="formAddUser" onsubmit="event.preventDefault(); window.submitAddUser(this);" method="POST" enctype="multipart/form-data">
                     <div class="modal-header border-bottom-0 pb-0">
                         <h5 class="fw-bold">Thêm Người dùng mới</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -126,6 +127,10 @@
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Tên Trường/Đơn vị</label>
                                 <input type="text" class="form-control form-control-custom" name="organization" placeholder="Nhập tên trường...">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Logo Trường/Đơn vị</label>
+                                <input type="file" class="form-control form-control-custom" name="avatar" accept="image/*">
                             </div>
                         </div>
                     </div>
@@ -184,8 +189,19 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Logo Trường</label>
+                                <div id="edit_avatar_container" class="mb-2" style="display: none;">
+                                    <div class="d-flex align-items-center gap-3 p-2 border rounded bg-light">
+                                        <img id="edit_avatar_preview" src="" class="rounded-circle border" style="width: 48px; height: 48px; object-fit: cover;">
+                                        <div class="form-check mb-0">
+                                            <input class="form-check-input" type="checkbox" name="delete_avatar" value="1" id="delete_avatar_check">
+                                            <label class="form-check-label text-danger" for="delete_avatar_check">
+                                                Xóa logo hiện tại
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                                 <input type="file" class="form-control form-control-custom" name="avatar" accept="image/*">
-                                <small class="text-muted">Upload logo sẽ ghi đè avatar hiện tại.</small>
+                                <small class="text-muted">Upload logo mới sẽ ghi đè avatar hiện tại.</small>
                             </div>
                         </div>
                     </div>
@@ -237,6 +253,20 @@
                 document.getElementById('edit_point').value = btn.dataset.point;
                 document.getElementById('edit_type').value = btn.dataset.type;
                 document.getElementById('edit_org').value = btn.dataset.org;
+                
+                const avatarContainer = document.getElementById('edit_avatar_container');
+                const avatarPreview = document.getElementById('edit_avatar_preview');
+                const deleteAvatarCheck = document.getElementById('delete_avatar_check');
+                
+                deleteAvatarCheck.checked = false;
+                
+                if (btn.dataset.avatar) {
+                    avatarPreview.src = btn.dataset.avatar;
+                    avatarContainer.style.display = 'block';
+                } else {
+                    avatarPreview.src = '';
+                    avatarContainer.style.display = 'none';
+                }
                 
                 if (btn.dataset.type == '2') {
                     document.getElementById('editVipFields').style.display = 'block';

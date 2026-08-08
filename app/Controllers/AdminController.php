@@ -49,7 +49,7 @@ class AdminController
             $destination = dirname(__DIR__, 2) . '/' . $uploadDir . $filename;
             
             if (move_uploaded_file($_FILES['avatar']['tmp_name'], $destination)) {
-                $updateData['avatar'] = '/' . $uploadDir . $filename;
+                $updateData['avatar'] = '/uploads/avatar/' . $filename;
             }
         }
         
@@ -83,6 +83,20 @@ class AdminController
             return response()->json(['status' => 'error', 'alert' => 'Email này đã tồn tại trên hệ thống.']);
         }
 
+        $avatar = '';
+        if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] == UPLOAD_ERR_OK) {
+            $uploadDir = 'public/uploads/avatar/';
+            if (!is_dir(dirname(__DIR__, 2) . '/' . $uploadDir)) {
+                mkdir(dirname(__DIR__, 2) . '/' . $uploadDir, 0755, true);
+            }
+            $filename = uniqid() . '-' . basename($_FILES['avatar']['name']);
+            $destination = dirname(__DIR__, 2) . '/' . $uploadDir . $filename;
+            
+            if (move_uploaded_file($_FILES['avatar']['tmp_name'], $destination)) {
+                $avatar = '/uploads/avatar/' . $filename;
+            }
+        }
+
         $insertData = [
             "uuid" => uuid(),
             "name" => $name,
@@ -92,7 +106,7 @@ class AdminController
             "organization" => $organization,
             "status" => 1,
             "deleted" => 0,
-            "avatar" => '',
+            "avatar" => $avatar,
             "affiliate" => random_secret(8, 'numeric'),
             "ref_by" => 0
         ];
@@ -158,8 +172,10 @@ class AdminController
             $destination = dirname(__DIR__, 2) . '/' . $uploadDir . $filename;
             
             if (move_uploaded_file($_FILES['avatar']['tmp_name'], $destination)) {
-                $updateData['avatar'] = '/' . $uploadDir . $filename;
+                $updateData['avatar'] = '/uploads/avatar/' . $filename;
             }
+        } elseif (request('delete_avatar') == '1') {
+            $updateData['avatar'] = '';
         }
 
         $this->app->db->update("accounts", $updateData, ["uuid" => $uuid]);
