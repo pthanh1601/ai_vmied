@@ -27,11 +27,16 @@
                     </button>
 
                     <a class="d-flex align-items-center gap-3 text-decoration-none" style="cursor: pointer;" href="/app/ai">
-                        <div class="d-flex align-items-center justify-content-center text-white fw-bold fs-5 shadow-sm rounded-3" 
-                             style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--brand-600, #0ea5e9), var(--accent-600, #6366f1));">
-                            V
-                        </div>
-                        <span class="fw-bold fs-5 text-dark d-none d-sm-block" style="letter-spacing: -0.5px;">AI Vmied</span>
+                        <?php if (isset($user) && isset($user->role_id) && $user->role_id == 2 && !empty($user->avatar)): ?>
+                            <img src="<?= htmlspecialchars($user->avatar) ?>" alt="Logo" style="height: 40px; object-fit: contain;">
+                            <span class="fw-bold fs-5 text-dark d-none d-sm-block" style="letter-spacing: -0.5px;"><?= htmlspecialchars($user->organization ?: 'VIP Partner') ?></span>
+                        <?php else: ?>
+                            <div class="d-flex align-items-center justify-content-center text-white fw-bold fs-5 shadow-sm rounded-3" 
+                                 style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--brand-600, #0ea5e9), var(--accent-600, #6366f1));">
+                                V
+                            </div>
+                            <span class="fw-bold fs-5 text-dark d-none d-sm-block" style="letter-spacing: -0.5px;">AI Vmied</span>
+                        <?php endif; ?>
                     </a>
 
                     <div hx-boost="true" hx-target="#app-content" hx-select="#app-content" hx-swap="outerHTML show:window:top" class="d-none d-md-flex align-items-center gap-1 bg-light bg-opacity-50 p-1 rounded-3">
@@ -77,11 +82,16 @@
     <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
         <div class="offcanvas-header pb-0">
             <div class="d-flex align-items-center gap-2">
-                <div class="d-flex align-items-center justify-content-center text-white fw-bold shadow-sm rounded-3" 
-                     style="width: 32px; height: 32px; background: linear-gradient(135deg, var(--brand-600, #0ea5e9), var(--accent-600, #6366f1));">
-                    V
-                </div>
-                <h5 class="offcanvas-title fw-bold" id="mobileSidebarLabel">AI Vmied</h5>
+                <?php if (isset($user) && isset($user->role_id) && $user->role_id == 2 && !empty($user->avatar)): ?>
+                    <img src="<?= htmlspecialchars($user->avatar) ?>" alt="Logo" style="height: 32px; object-fit: contain;">
+                    <h5 class="offcanvas-title fw-bold" id="mobileSidebarLabel"><?= htmlspecialchars($user->organization ?: 'VIP Partner') ?></h5>
+                <?php else: ?>
+                    <div class="d-flex align-items-center justify-content-center text-white fw-bold shadow-sm rounded-3" 
+                         style="width: 32px; height: 32px; background: linear-gradient(135deg, var(--brand-600, #0ea5e9), var(--accent-600, #6366f1));">
+                        V
+                    </div>
+                    <h5 class="offcanvas-title fw-bold" id="mobileSidebarLabel">AI Vmied</h5>
+                <?php endif; ?>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>

@@ -23,5 +23,12 @@
         "phpoffice/phpspreadsheet": "^2.3",
         "dompdf/dompdf": "^3.0",
         "firebase/php-jwt": "^6.10"
+    },
+    "config": {
+        "policy": {
+            "advisories": {
+                "block": false
+            }
+        }
     }
 }

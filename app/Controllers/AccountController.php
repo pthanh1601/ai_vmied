@@ -582,19 +582,19 @@ class AccountController
             "ORDER"   => ["created_at" => "DESC"]
         ]);
     
-        $balance = app()->db->get("wallets", "balance", [
+        $balance = (float)(app()->db->get("wallets", "balance", [
             "account" => $accountId
-        ]) ?? 0;
+        ]) ?: 0);
     
-        $totalReferrals = app()->db->count("accounts", [
+        $totalReferrals = (int)(app()->db->count("accounts", [
             "ref_by" => $user->affiliate
-        ]) ?? 0;
+        ]) ?: 0);
     
-        $totalEarned = app()->db->sum("transactions", "commission", [
+        $totalEarned = (float)(app()->db->sum("transactions", "commission", [
             "account" => $user->uuid,
             "type"    => "commission",
             "status"  => 1
-        ]) ?? 0;
+        ]) ?: 0);
     
         // Query lịch sử hoa hồng JOIN accounts lấy email
         $referrals = app()->db->select("transactions", [

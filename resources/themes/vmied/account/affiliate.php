@@ -1,7 +1,7 @@
 <?php $this->extend('layouts/app') ?>
 
 <?php $this->section('content') ?>
-<div class="container py-5" data-page-script="/js/affiliate.js">
+<div class="container py-5" data-page-script="/js/referral.js">
     <!-- HEADER -->
     <div class="text-center py-5">
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary-subtle text-primary border border-primary-subtle mb-3">
@@ -161,9 +161,17 @@
                         <p class="text-white-50">Gửi liên kết này cho bạn bè để bắt đầu nhận hoa hồng.</p>
                     </div>
                     <div class="bg-white bg-opacity-10 p-2 rounded-4 border border-white border-opacity-10 mb-4">
-                        <div class="input-group">
+                        <div class="small fw-bold text-white-50 ms-2 mb-1">Link đăng ký (Hoa hồng 20% khi nạp tiền)</div>
+                        <div class="input-group mb-2">
                             <input type="text" class="form-control bg-transparent border-0 text-white shadow-none font-monospace" id="ref-link" value="https://ai.vmied.com/login?ref=<?=$user->affiliate?>" readonly>
-                            <button class="btn btn-primary fw-bold rounded-3 px-4" onclick="navigator.clipboard.writeText(document.getElementById('ref-link').value).then(function(){ alert('Đã sao chép!'); })">
+                            <button class="btn btn-primary fw-bold rounded-3 px-4" onclick="navigator.clipboard.writeText(document.getElementById('ref-link').value).then(function(){ alert('Đã sao chép link!'); })">
+                                Copy
+                            </button>
+                        </div>
+                        <div class="small fw-bold text-white-50 ms-2 mb-1 border-top border-white border-opacity-10 pt-2">Mã giới thiệu (Hoa hồng 10% khi quét AI)</div>
+                        <div class="input-group">
+                            <input type="text" class="form-control bg-transparent border-0 text-white shadow-none font-monospace fs-5 fw-bold" id="ref-code" value="<?=$user->affiliate?>" readonly>
+                            <button class="btn btn-primary fw-bold rounded-3 px-4" onclick="navigator.clipboard.writeText(document.getElementById('ref-code').value).then(function(){ alert('Đã sao chép mã!'); })">
                                 Copy
                             </button>
                         </div>

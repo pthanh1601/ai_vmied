@@ -32,16 +32,16 @@
         <!-- Menu -->
         <div class="flex-grow-1 p-2 overflow-auto">
             <div class="list-group list-group-flush" hx-boost="true" hx-target="#app-content" hx-select="#app-content" hx-swap="outerHTML show:window:top" >
-                <a href="/app/profiles" data-bs-dismiss="offcanvas" class="list-group-item list-group-item-action border-0 rounded-3 py-3 px-3 d-flex align-items-center gap-3 text-secondary fw-medium hover-bg-light">
+                <a href="/app/profiles" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('profileDrawer')).hide();" class="list-group-item list-group-item-action border-0 rounded-3 py-3 px-3 d-flex align-items-center gap-3 text-secondary fw-medium hover-bg-light">
                     <i data-lucide="user" style="width: 18px;"></i> Thông tin cá nhân
                 </a>
-                <a href="/app/affiliate" data-bs-dismiss="offcanvas"  class="list-group-item list-group-item-action border-0 rounded-3 py-3 px-3 d-flex align-items-center gap-3 text-secondary fw-medium hover-bg-light">
-                    <i data-lucide="gift" style="width: 18px;"></i> Giới thiệu bàn bè
+                <a href="/app/affiliate" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('profileDrawer')).hide();" class="list-group-item list-group-item-action border-0 rounded-3 py-3 px-3 d-flex align-items-center gap-3 text-secondary fw-medium hover-bg-light">
+                    <i data-lucide="gift" style="width: 18px;"></i> Giới thiệu bạn bè
                 </a>
-                <a href="/app/historys" data-bs-dismiss="offcanvas"  class="list-group-item list-group-item-action border-0 rounded-3 py-3 px-3 d-flex align-items-center gap-3 text-secondary fw-medium hover-bg-light">
+                <a href="/app/historys" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('profileDrawer')).hide();" class="list-group-item list-group-item-action border-0 rounded-3 py-3 px-3 d-flex align-items-center gap-3 text-secondary fw-medium hover-bg-light">
                     <i data-lucide="history" style="width: 18px;"></i> Lịch sử giao dịch
                 </a>
-                <a href="/app/support" data-bs-dismiss="offcanvas"  class="list-group-item list-group-item-action border-0 rounded-3 py-3 px-3 d-flex align-items-center gap-3 text-secondary fw-medium hover-bg-light">
+                <a href="/app/support" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('profileDrawer')).hide();" class="list-group-item list-group-item-action border-0 rounded-3 py-3 px-3 d-flex align-items-center gap-3 text-secondary fw-medium hover-bg-light">
                     <i data-lucide="help-circle" style="width: 18px;"></i> Trợ giúp & Hỗ trợ
                 </a>
             </div>
