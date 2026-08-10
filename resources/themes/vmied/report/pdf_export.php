@@ -7,6 +7,25 @@ $result  = $result  ?? $data ?? [];
 $summary = $summary ?? [];
 $history = $history ?? [];
 $user    = $user    ?? null;
+$vip     = $vip     ?? $data['vip'] ?? null;
+
+// BẢO HIỂM 100%: Tự động truy vấn Database nếu biến VIP bị thất lạc giữa đường
+if (empty($vip) && !empty($user->uuid)) {
+    $uDb = app()->db->get("accounts", "*", ["uuid" => $user->uuid]);
+    if ($uDb) {
+        // 1. Nếu chính user in báo cáo là Trường
+        if ($uDb['type'] == 2) {
+            $vip = ['organization' => $uDb['organization'], 'avatar' => $uDb['avatar']];
+        } 
+        // 2. Nếu là Giảng viên/Sinh viên -> Tìm tuyến trên
+        elseif (!empty($uDb['ref_by'])) {
+            $vDb = app()->db->get("accounts", "*", ["affiliate" => trim($uDb['ref_by'])]);
+            if ($vDb && $vDb['type'] == 2) {
+                $vip = ['organization' => $vDb['organization'], 'avatar' => $vDb['avatar']];
+            }
+        }
+    }
+}
 
 $ai    = $result['ai']              ?? [];
 $plag  = $result['plagiarism']      ?? [];
@@ -333,29 +352,40 @@ body { font-family: "DejaVu Sans", sans-serif; font-size: 10.5px; line-height: 1
 <body>
 
 <?php
-$globalHeader = '
-<div class="hdr">
-    <div class="hdr-l">
-        <div class="brand">' . $__p('brand') . '</div>
-        <div class="brand-sub">' . $__p('brand_sub') . '</div>
-    </div>
-    <div class="hdr-r">
-        ' . ($createdAt ? '<div class="report-date">' . $__p('scan_date') . ' ' . $dateScanned . '</div>' : '') . '
-        <div class="report-date">' . $__p('report_id') . ' #' . (int)($history['id'] ?? 0) . '</div>
-    </div>
-</div>';
+ob_start();
 ?>
-<?php
-$globalHeader = '
 <div class="hdr">
     <div class="hdr-l">
-        <div class="brand">' . $__p('brand') . '</div>
-        <div class="brand-sub">' . $__p('brand_sub') . '</div>
+        <!-- KIỂM TRA NẾU CÓ THÔNG TIN TRƯỜNG VIP -->
+        <?php if (!empty($vip) && !empty($vip['organization'])): ?>
+            <table style="border-collapse: collapse; width: 100%;">
+                <tr>
+                    <?php if (!empty($vip['avatar'])): ?>
+                    <td style="vertical-align: middle; padding-right: 12px; width: 50px;">
+                        <!-- DomPDF cần đường dẫn vật lý cục bộ để render ảnh -->
+                        <img src="<?= rtrim(app()->basePath(), '/') . '/public' . $vip['avatar'] ?>" style="max-height: 45px; width: auto;">
+                    </td>
+                    <?php endif; ?>
+                    <td style="vertical-align: middle;">
+                        <div class="brand" style="font-size: 14px;"><?= htmlspecialchars($vip['organization']) ?></div>
+                        <div class="brand-sub">Hệ thống kiểm định: AI VMIED</div>
+                    </td>
+                </tr>
+            </table>
+        <?php else: ?>
+            <!-- TÀI KHOẢN THƯỜNG -> HIỂN THỊ LOGO HỆ THỐNG MẶC ĐỊNH -->
+            <div class="brand"><?= $__p('brand') ?></div>
+            <div class="brand-sub"><?= $__p('brand_sub') ?></div>
+        <?php endif; ?>
     </div>
+    
     <div class="hdr-r">
-        ' . ($createdAt ? '<div class="report-date">' . $__p('scan_date') . ' ' . $dateScanned . '</div>' : '') . '
+        <?= $createdAt ? '<div class="report-date">' . $__p('scan_date') . ' ' . $dateScanned . '</div>' : '' ?>
+        <div class="report-date"><?= $__p('report_id') ?> #<?= (int)($history['id'] ?? 0) ?></div>
     </div>
-</div>';
+</div>
+<?php
+$globalHeader = ob_get_clean();
 ?>
 
 <!-- TRANG 1: TỔNG QUAN -->

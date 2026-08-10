@@ -60,6 +60,7 @@ class AuthMiddleware
                 "accounts.avatar", 
                 "accounts.type",
                 "accounts.affiliate",
+                "accounts.ref_by",
                 "points.points(point)",
             ], 
             [
@@ -76,6 +77,7 @@ class AuthMiddleware
                 "email"  => $account['email'],
                 "point"  => $account['point'] ?? 0,
                 "affiliate" => $account['affiliate'] ?? null,
+                "ref_by" => $account['ref_by'] ?? null,
                 "type"   => $account['type'] == 0 ? 'Thành viên' : 'Quản trị',
             ];
             

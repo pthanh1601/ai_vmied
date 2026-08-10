@@ -21,6 +21,14 @@ $app->group(['prefix' => '/app', 'middleware' => 'auth'], function () use ($app)
         return view('ai/humanizer', ['user' => $user]);
     });
 
+
+    // ===== QUẢN LÝ THÀNH VIÊN (DÀNH CHO VIP) =====
+    $app->router('/members', 'GET', ['App\Controllers\AccountController', 'Members']);
+    $app->router('/members/add', 'POST', ['App\Controllers\AccountController', 'AddMember']);
+    $app->router('/members/update', 'POST', ['App\Controllers\AccountController', 'UpdateMember']);
+    $app->router('/members/delete', 'POST', ['App\Controllers\AccountController', 'DeleteMember']);
+    $app->router('/members/toggle-status', 'POST', ['App\Controllers\AccountController', 'ToggleMemberStatus']);
+
     // AI Detection → dùng /scan
     $app->router('/ai/scan', 'POST', ['App\Controllers\MockOriginalityController', 'scan']);
 

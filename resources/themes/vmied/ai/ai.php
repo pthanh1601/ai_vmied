@@ -225,10 +225,7 @@
                                         <h6 class="fw-bold mb-2" :class="results.ai.confidence.AI >= 0.5 ? 'text-danger' : 'text-success'" x-text="'Có khả năng là ' + (results.ai.confidence.AI >= 0.5 ? 'AI' : 'Nguyên bản') + ' - Độ tin cậy ' + parseFloat((Math.max(results.ai.confidence.AI, results.ai.confidence.Original) * 100).toFixed(2)) + '%.'"></h6>
                                         <p class="small text-secondary mb-3" x-text="'Chúng tôi tự tin rằng văn bản được quét là ' + (results.ai.confidence.AI >= 0.5 ? 'do AI tạo ra' : 'do con người viết') + ', nhưng điều đó KHÔNG có nghĩa là ' + parseFloat((Math.max(results.ai.confidence.AI, results.ai.confidence.Original) * 100).toFixed(2)) + '% văn bản được tạo ra đều là ' + (results.ai.confidence.AI >= 0.5 ? 'do AI' : 'do con người') + ' tạo ra.'"></p>
             
-                                        <div class="text-start small text-muted border-top pt-3">
-                                            <div><strong>Mô hình:</strong> <span x-text="results.ai.aiModel || params.aiModelVersion || 'Đa ngôn ngữ'"></span></div>
-                                            <div><strong>Ngày:</strong> <?= date('d \t\h\á\n\g m \n\ă\m Y') ?></div>
-                                        </div>
+                                        <!-- Removed Mô hình and Ngày -->
                                     </div>
                                 </div>
                             </template>

@@ -27,11 +27,31 @@
                     </button>
 
                     <a class="d-flex align-items-center gap-3 text-decoration-none" style="cursor: pointer;" href="/app/ai">
-                        <div class="d-flex align-items-center justify-content-center text-white fw-bold fs-5 shadow-sm rounded-3" 
-                             style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--brand-600, #0ea5e9), var(--accent-600, #6366f1));">
-                            V
-                        </div>
-                        <span class="fw-bold fs-5 text-dark d-none d-sm-block" style="letter-spacing: -0.5px;">AI Vmied</span>
+                        <?php if (isset($user) && !empty($user->organization)): ?>
+                            <!-- HIỂN THỊ DÀNH CHO TRƯỜNG VIP HOẶC HỌC VIÊN/GIẢNG VIÊN THUỘC TRƯỜNG -->
+                            <?php if (!empty($user->avatar)): ?>
+                                <img src="<?= htmlspecialchars($user->avatar) ?>" alt="Logo" style="height: 45px; object-fit: contain; border-radius: 6px;">
+                            <?php else: ?>
+                                <div class="d-flex align-items-center justify-content-center text-white fw-bold fs-4 shadow-sm rounded-3" 
+                                     style="width: 45px; height: 45px; background: linear-gradient(135deg, var(--brand-600, #0ea5e9), var(--accent-600, #6366f1));">
+                                    <?= mb_substr($user->organization, 0, 1, 'UTF-8') ?>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <span class="fw-bolder fs-4 text-dark d-none d-sm-block m-0" style="letter-spacing: -0.3px; line-height: 1;">
+                                <?= htmlspecialchars($user->organization) ?>
+                            </span>
+                    
+                        <?php else: ?>
+                            <!-- HIỂN THỊ MẶC ĐỊNH (TÀI KHOẢN TỰ DO HOẶC ADMIN) -->
+                            <div class="d-flex align-items-center justify-content-center text-white fw-bold fs-4 shadow-sm rounded-3" 
+                                 style="width: 45px; height: 45px; background: linear-gradient(135deg, var(--brand-600, #0ea5e9), var(--accent-600, #6366f1));">
+                                V
+                            </div>
+                            <span class="fw-bolder fs-4 text-dark d-none d-sm-block m-0" style="letter-spacing: -0.3px; line-height: 1;">
+                                AI Vmied
+                            </span>
+                        <?php endif; ?>
                     </a>
 
                     <div hx-boost="true" hx-target="#app-content" hx-select="#app-content" hx-swap="outerHTML show:window:top" class="d-none d-md-flex align-items-center gap-1 bg-light bg-opacity-50 p-1 rounded-3">
@@ -77,11 +97,16 @@
     <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
         <div class="offcanvas-header pb-0">
             <div class="d-flex align-items-center gap-2">
-                <div class="d-flex align-items-center justify-content-center text-white fw-bold shadow-sm rounded-3" 
-                     style="width: 32px; height: 32px; background: linear-gradient(135deg, var(--brand-600, #0ea5e9), var(--accent-600, #6366f1));">
-                    V
-                </div>
-                <h5 class="offcanvas-title fw-bold" id="mobileSidebarLabel">AI Vmied</h5>
+                <?php if (isset($user) && isset($user->role_id) && $user->role_id == 2 && !empty($user->avatar)): ?>
+                    <img src="<?= htmlspecialchars($user->avatar) ?>" alt="Logo" style="height: 48px; object-fit: contain;">
+                    <h5 class="offcanvas-title fw-bold" id="mobileSidebarLabel"><?= htmlspecialchars($user->organization ?: 'VIP Partner') ?></h5>
+                <?php else: ?>
+                    <div class="d-flex align-items-center justify-content-center text-white fw-bold shadow-sm rounded-3" 
+                         style="width: 32px; height: 32px; background: linear-gradient(135deg, var(--brand-600, #0ea5e9), var(--accent-600, #6366f1));">
+                        V
+                    </div>
+                    <h5 class="offcanvas-title fw-bold" id="mobileSidebarLabel">AI Vmied</h5>
+                <?php endif; ?>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
@@ -89,12 +114,25 @@
             
             <div class="d-flex flex-column gap-2 mt-4">
                 <?php if (strpos($_SERVER['REQUEST_URI'] ?? '', '/admin') === 0): ?>
-                    <a href="/admin/users" class="nav-link-custom" data-bs-dismiss="offcanvas">
-                        <i data-lucide="users"></i> Người dùng
-                    </a>
-                    <a href="/admin/statistics" class="nav-link-custom" data-bs-dismiss="offcanvas">
-                        <i data-lucide="bar-chart-2"></i> Thống kê
-                    </a>
+                    
+                    <?php if (isset($user) && $user->type == 1): ?>
+                        <!-- Menu của ADMIN -->
+                        <a href="/admin/vips" class="nav-link-custom" data-bs-dismiss="offcanvas">
+                            <i data-lucide="building"></i> Đơn vị Liên kết
+                        </a>
+                        <a href="/admin/members" class="nav-link-custom" data-bs-dismiss="offcanvas">
+                            <i data-lucide="users"></i> Học viên / Giảng viên
+                        </a>
+                        <a href="/admin/statistics" class="nav-link-custom" data-bs-dismiss="offcanvas">
+                            <i data-lucide="bar-chart-2"></i> Thống kê
+                        </a>
+                    <?php elseif (isset($user) && $user->type == 2): ?>
+                        <!-- Menu của VIP -->
+                        <a href="/admin/members" class="nav-link-custom" data-bs-dismiss="offcanvas">
+                            <i data-lucide="users"></i> Học viên / Giảng viên
+                        </a>
+                    <?php endif; ?>
+
                 <?php else: ?>
                     <a href="/app" class="nav-link-custom" data-bs-dismiss="offcanvas">
                         <i data-lucide="layout-dashboard"></i> Dashboard
@@ -149,17 +187,32 @@
         <!-- Left Sidebar (Desktop only) -->
         <div class="d-flex flex-column bg-white shadow-sm h-100 position-fixed start-0 pb-4 admin-sidebar">
             <div class="p-3 d-flex flex-column gap-2">
-                <p class="text-uppercase text-secondary fw-bold small mb-2 ps-2">Quản trị viên</p>
+                <p class="text-uppercase text-secondary fw-bold small mb-2 ps-2">Khu vực Quản lý</p>
                 
-                <a href="/admin/users" class="nav-link-custom admin-nav-item <?php echo strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/users') === 0 ? 'bg-primary text-white' : 'text-dark'; ?> rounded-3 p-2 text-decoration-none d-flex align-items-center gap-3">
-                    <i data-lucide="users" style="width: 20px;"></i> 
-                    <span class="fw-medium">Người dùng</span>
-                </a>
-                
-                <a href="/admin/statistics" class="nav-link-custom admin-nav-item <?php echo strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/statistics') === 0 ? 'bg-primary text-white' : 'text-dark'; ?> rounded-3 p-2 text-decoration-none d-flex align-items-center gap-3">
-                    <i data-lucide="bar-chart-2" style="width: 20px;"></i> 
-                    <span class="fw-medium">Thống kê</span>
-                </a>
+                <?php if (isset($user) && $user->type == 1): ?>
+                    <!-- Menu của ADMIN -->
+                    <a href="/admin/vips" class="nav-link-custom admin-nav-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/vips') === 0 ? 'bg-primary text-white' : 'text-dark' ?> rounded-3 p-2 text-decoration-none d-flex align-items-center gap-3">
+                        <i data-lucide="building" style="width: 20px;"></i> 
+                        <span class="fw-medium">Đơn vị Liên kết</span>
+                    </a>
+                    
+                    <a href="/admin/members" class="nav-link-custom admin-nav-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/members') === 0 ? 'bg-primary text-white' : 'text-dark' ?> rounded-3 p-2 text-decoration-none d-flex align-items-center gap-3">
+                        <i data-lucide="users" style="width: 20px;"></i> 
+                        <span class="fw-medium">Học viên / Giảng viên</span>
+                    </a>
+                    
+                    <a href="/admin/statistics" class="nav-link-custom admin-nav-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/statistics') === 0 ? 'bg-primary text-white' : 'text-dark' ?> rounded-3 p-2 text-decoration-none d-flex align-items-center gap-3">
+                        <i data-lucide="bar-chart-2" style="width: 20px;"></i> 
+                        <span class="fw-medium">Thống kê</span>
+                    </a>
+
+                <?php elseif (isset($user) && $user->type == 2): ?>
+                    <!-- Menu của VIP -->
+                    <a href="/admin/members" class="nav-link-custom admin-nav-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/members') === 0 ? 'bg-primary text-white' : 'text-dark' ?> rounded-3 p-2 text-decoration-none d-flex align-items-center gap-3">
+                        <i data-lucide="users" style="width: 20px;"></i> 
+                        <span class="fw-medium">Học viên / Giảng viên</span>
+                    </a>
+                <?php endif; ?>
             </div>
         </div>
 

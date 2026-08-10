@@ -127,6 +127,9 @@ class PaymentController
     //       return response()->json(['RspCode' => '00']);
     //   }
     // =========================================================
+   // =========================================================
+    // XỬ LÝ SAU KHI THANH TOÁN THÀNH CÔNG (AUTO / VNPAY / MOMO)
+    // =========================================================
     public function processDepositSuccess(string $code): bool {
         try {
             app()->db->action(function($db) use ($code) {
@@ -144,43 +147,54 @@ class PaymentController
                 $amount    = $transaction['amount'];
                 $vmied     = $transaction['vmied'];
     
+                // 1. Cập nhật trạng thái lệnh nạp thành công
                 $db->update("transactions", [
                     "status" => 1,
                     "note"   => "Thanh toán thành công"
                 ], ["code" => $code]);
     
+                // 2. Cộng điểm (V) vào tài khoản cho sinh viên/học viên
                 upsertPoints($accountId, $vmied, $code, 'deposit');
     
-                $account   = $db->get("accounts", ["ref_by"], ["id" => $accountId]);
+                // =====================================================
+                // 3. XỬ LÝ CHIA HOA HỒNG (PHÍ QUẢN LÝ 10% CHO VIP)
+                // =====================================================
+                $account   = $db->get("accounts", ["ref_by", "name"], ["id" => $accountId]);
                 $refByCode = $account['ref_by'] ?? null;
     
                 if ($refByCode) {
-                    $refBy = $db->get("accounts", ["id"], ["affiliate" => $refByCode]);
+                    // Lấy tuyến trên và kiểm tra xem có phải là VIP đang hoạt động không
+                    $refBy = $db->get("accounts", ["id", "type", "status"], ["affiliate" => $refByCode]);
     
-                    if ($refBy) {
-                        $commissionRate = (int) (getenv('COMMISSION') ?: 20);
+                    if ($refBy && $refBy['type'] == 2 && $refBy['status'] == 1) {
+                        
+                        // Tính toán 10% hoa hồng
+                        $commissionRate = 10; 
                         $commission     = round($amount * $commissionRate / 100);
     
+                        // Ghi lại giao dịch VÀO TÀI KHOẢN CỦA VIP (để VIP xem sao kê)
                         $db->insert("transactions", [
                             "code"       => 'COM-' . strtoupper(substr(uniqid(), -6)),
                             "uuid"       => uuid(),
-                            "account"    => $accountId,
-                            "referrer"   => $refBy['id'],
+                            "account"    => $refBy['id'],       // TRƯỜNG NHẬN TIỀN
+                            "referrer"   => $accountId,         // TỪ SINH VIÊN NÀY
                             "type"       => "commission",
-                            "amount"     => $amount,
-                            "vmied"      => $commission,
-                            "commission" => $commission,
+                            "amount"     => $amount,            // Số tiền nạp gốc
+                            "vmied"      => 0,                  // Không cộng point
+                            "commission" => $commission,        // Tiền thật nhận được (10%)
                             "method"     => $transaction['method'],
                             "status"     => 1,
-                            "note"       => "Hoa hồng {$commissionRate}% từ giao dịch {$code}"
+                            "note"       => "Phí quản lý 10% từ học viên " . ($account['name'] ?? '')
                         ]);
     
+                        // Cộng tiền thật vào ví rút tiền (Bảng wallets) cho VIP
                         upsertWallet($refBy['id'], $commission, $code, 'commission');
                     }
                 }
             });
     
         } catch (\Exception $e) {
+            error_log("Lỗi xử lý nạp tiền: " . $e->getMessage());
             return false;
         }
     

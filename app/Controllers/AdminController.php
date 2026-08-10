@@ -10,29 +10,143 @@ class AdminController
         $this->app = app();
     }
 
-    public function Users() {
-        $users = $this->app->db->select("accounts", [
+    public function Vips() {
+        $user = $this->app->request->user;
+        
+        // Nếu là VIP, đẩy sang trang Members, không cho xem danh sách VIP
+        if ($user->type == 2) {
+            header("Location: /admin/members");
+            exit;
+        }
+    
+        $vips = $this->app->db->select("accounts", [
             "[>]points" => ["uuid" => "account"]
         ], [
-            "accounts.id", "accounts.uuid", "accounts.name", "accounts.email", 
-            "accounts.type", "accounts.organization", "accounts.avatar", "accounts.date",
+            "accounts.id", "accounts.uuid", "accounts.name", "accounts.email", "accounts.status",
+            "accounts.organization", "accounts.avatar", "accounts.date", "accounts.affiliate",
             "points.points(point)"
         ], [
             "accounts.deleted" => 0,
+            "accounts.type" => 2, // Chỉ lấy VIP
             "ORDER" => ["accounts.date" => "DESC"]
         ]);
-
-        return view('admin/users', [
-            'title' => 'Quản lý người dùng',
-            'users' => $users,
-            'user'  => $this->app->request->user
+    
+        return view('admin/vips', [
+            'title' => 'Quản lý Đơn vị Liên kết (VIP)',
+            'vips' => $vips,
+            'user'  => $user
         ]);
     }
-
+    
+    public function Members() {
+        $user = $this->app->request->user;
+        $filterVipRef = request('vip_ref'); // Lấy mã giới thiệu từ URL nếu Admin muốn lọc
+    
+        $conditions = [
+            "accounts.deleted" => 0,
+            "accounts.type" => 0, // Chỉ lấy tài khoản thường
+            "ORDER" => ["accounts.date" => "DESC"]
+        ];
+    
+        // PHÂN QUYỀN HIỂN THỊ
+        if ($user->type == 2) {
+            // Nếu là VIP: Chỉ lấy những user có ref_by bằng affiliate của VIP này
+            $conditions["accounts.ref_by"] = $user->affiliate;
+        } elseif ($user->type == 1 && !empty($filterVipRef)) {
+            // Nếu là Admin và có chọn bộ lọc: Lọc theo mã VIP
+            $conditions["accounts.ref_by"] = $filterVipRef;
+        }
+    
+        $members = $this->app->db->select("accounts", [
+            "[>]points" => ["uuid" => "account"]
+        ], [
+            "accounts.id", "accounts.uuid", "accounts.name", "accounts.email", 
+            "accounts.avatar", "accounts.date", "accounts.ref_by", "accounts.status",
+            "points.points(point)"
+        ], $conditions);
+    
+        // Dành cho Admin: Lấy thêm danh sách VIP để làm thẻ <select> bộ lọc
+        $vipList = [];
+        if ($user->type == 1) {
+            $vipList = $this->app->db->select("accounts", ["name", "organization", "affiliate"], ["type" => 2, "deleted" => 0]);
+        }
+    
+        return view('admin/members', [
+            'title' => 'Quản lý Học viên / Giảng viên',
+            'members' => $members,
+            'user'  => $user,
+            'vipList' => $vipList,
+            'currentFilter' => $filterVipRef
+        ]);
+    }
+    
+    public function MemberHistory() {
+        $user = $this->app->request->user;
+        $memberUuid = request('uuid');
+    
+        // Lấy thông tin member
+        $member = $this->app->db->get("accounts", ["uuid", "name", "ref_by"], ["uuid" => $memberUuid, "type" => 0]);
+        if (!$member) {
+            return "Người dùng không tồn tại.";
+        }
+    
+        // Bảo mật: Nếu là VIP, chỉ cho xem lịch sử của member thuộc tuyến dưới
+        if ($user->type == 2 && $member['ref_by'] != $user->affiliate) {
+            return "Bạn không có quyền xem lịch sử của người này.";
+        }
+    
+        $history = $this->app->db->select("originality_history", [
+            "id", "title", "type", "word_count", "points_used", "created_at",
+            "ai_score", "plag_score", "grammar_errors", "readability_score"
+        ], [
+            "account_uuid" => $memberUuid,
+            "ORDER" => ["created_at" => "DESC"]
+        ]);
+    
+        return view('admin/member_history', [
+            'title' => 'Lịch sử quét của ' . $member['name'],
+            'history' => $history,
+            'user' => $user
+        ]);
+    }
+    
     public function Statistics() {
+        $user = $this->app->request->user;
+
+        // Bảo mật: Chỉ Admin mới được xem thống kê tài chính
+        if ($user->type != 1) {
+            header("Location: /admin/members");
+            exit;
+        }
+
+        // 1. Tổng tiền mặt khách đã nạp thành công
+        $totalDeposit = $this->app->db->sum("transactions", "amount", [
+            "status" => 1, 
+            "type" => "deposit"
+        ]);
+
+        // 2. Thống kê Doanh thu và Chi phí vốn (Chỉ từ Copyscape)
+        $stats = $this->app->db->query("
+            SELECT 
+                COUNT(id) as total_scans,
+                SUM(points_used) as total_revenue,
+                SUM(capitalCost) as total_cost
+            FROM originality_history
+            WHERE status = 'done'
+        ")->fetch();
+
+        $totalRevenue = $stats['total_revenue'] ?? 0; // Tiền thu của khách
+        $totalCost    = $stats['total_cost'] ?? 0;    // Tiền trả cho Copyscape
+        $totalProfit  = $totalRevenue - $totalCost;   // Lợi nhuận
+        
         return view('admin/statistics', [
-            'title' => 'Thống kê',
-            'user'  => $this->app->request->user
+            'title' => 'Thống kê Tài chính & Vận hành',
+            'user'  => $user,
+            'totalDeposit' => $totalDeposit ?? 0,
+            'totalRevenue' => $totalRevenue,
+            'totalCost'    => $totalCost,
+            'totalProfit'  => $totalProfit,
+            'totalScans'   => $stats['total_scans'] ?? 0
         ]);
     }
 
@@ -211,6 +325,22 @@ class AdminController
             'status' => 'success',
             'alert' => 'Đã xóa tài khoản thành công',
             'reload' => true
+        ]);
+    }
+    
+    public function ToggleStatus() {
+        $uuid = request('uuid');
+        $status = (int) request('status'); // 1: Hoạt động, 0: Vô hiệu hóa
+    
+        if (empty($uuid)) {
+            return response()->json(['status' => 'error', 'alert' => 'Thiếu thông tin người dùng.']);
+        }
+    
+        $this->app->db->update("accounts", ["status" => $status], ["uuid" => $uuid]);
+    
+        return response()->json([
+            'status' => 'success',
+            'alert' => 'Đã cập nhật trạng thái tài khoản'
         ]);
     }
 }

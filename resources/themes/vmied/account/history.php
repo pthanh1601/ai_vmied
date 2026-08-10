@@ -1,3 +1,9 @@
+<?php if (!app()->request->isHtmx()): ?>
+    <?php $this->extend('layouts/app') ?>
+    <?php $this->section('content') ?>
+    <?= $this->insert('ai/menu-ai',["user"=>$user, 'active' => '']) ?>
+<?php endif; ?>
+
 <div id="app-content" class="animate-fade-in" data-page-script="/js/history.js">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -259,3 +265,6 @@
         </div>
     </div>
 </div>
+<?php if (!app()->request->isHtmx()): ?>
+    <?php $this->endSection() ?>
+<?php endif; ?>

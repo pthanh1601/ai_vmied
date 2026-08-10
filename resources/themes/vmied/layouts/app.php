@@ -27,15 +27,30 @@
                     </button>
 
                     <a class="d-flex align-items-center gap-3 text-decoration-none" style="cursor: pointer;" href="/app/ai">
-                        <?php if (isset($user) && isset($user->role_id) && $user->role_id == 2 && !empty($user->avatar)): ?>
-                            <img src="<?= htmlspecialchars($user->avatar) ?>" alt="Logo" style="height: 40px; object-fit: contain;">
-                            <span class="fw-bold fs-5 text-dark d-none d-sm-block" style="letter-spacing: -0.5px;"><?= htmlspecialchars($user->organization ?: 'VIP Partner') ?></span>
+                        <?php if (isset($user) && !empty($user->organization)): ?>
+                            <!-- HIỂN THỊ DÀNH CHO TRƯỜNG VIP HOẶC HỌC VIÊN/GIẢNG VIÊN THUỘC TRƯỜNG -->
+                            <?php if (!empty($user->avatar)): ?>
+                                <img src="<?= htmlspecialchars($user->avatar) ?>" alt="Logo" style="height: 45px; object-fit: contain; border-radius: 6px;">
+                            <?php else: ?>
+                                <div class="d-flex align-items-center justify-content-center text-white fw-bold fs-4 shadow-sm rounded-3" 
+                                     style="width: 45px; height: 45px; background: linear-gradient(135deg, var(--brand-600, #0ea5e9), var(--accent-600, #6366f1));">
+                                    <?= mb_substr($user->organization, 0, 1, 'UTF-8') ?>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <span class="fw-bolder fs-4 text-dark d-none d-sm-block m-0" style="letter-spacing: -0.3px; line-height: 1;">
+                                <?= htmlspecialchars($user->organization) ?>
+                            </span>
+                    
                         <?php else: ?>
-                            <div class="d-flex align-items-center justify-content-center text-white fw-bold fs-5 shadow-sm rounded-3" 
-                                 style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--brand-600, #0ea5e9), var(--accent-600, #6366f1));">
+                            <!-- HIỂN THỊ MẶC ĐỊNH (TÀI KHOẢN TỰ DO HOẶC ADMIN) -->
+                            <div class="d-flex align-items-center justify-content-center text-white fw-bold fs-4 shadow-sm rounded-3" 
+                                 style="width: 45px; height: 45px; background: linear-gradient(135deg, var(--brand-600, #0ea5e9), var(--accent-600, #6366f1));">
                                 V
                             </div>
-                            <span class="fw-bold fs-5 text-dark d-none d-sm-block" style="letter-spacing: -0.5px;">AI Vmied</span>
+                            <span class="fw-bolder fs-4 text-dark d-none d-sm-block m-0" style="letter-spacing: -0.3px; line-height: 1;">
+                                AI Vmied
+                            </span>
                         <?php endif; ?>
                     </a>
 
@@ -83,7 +98,7 @@
         <div class="offcanvas-header pb-0">
             <div class="d-flex align-items-center gap-2">
                 <?php if (isset($user) && isset($user->role_id) && $user->role_id == 2 && !empty($user->avatar)): ?>
-                    <img src="<?= htmlspecialchars($user->avatar) ?>" alt="Logo" style="height: 32px; object-fit: contain;">
+                    <img src="<?= htmlspecialchars($user->avatar) ?>" alt="Logo" style="height: 48px; object-fit: contain;">
                     <h5 class="offcanvas-title fw-bold" id="mobileSidebarLabel"><?= htmlspecialchars($user->organization ?: 'VIP Partner') ?></h5>
                 <?php else: ?>
                     <div class="d-flex align-items-center justify-content-center text-white fw-bold shadow-sm rounded-3" 

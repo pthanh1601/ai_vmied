@@ -227,6 +227,39 @@ class ReportController
             return "Báo cáo #{$reportId} không tồn tại hoặc không thuộc quyền sở hữu của bạn.";
         }
 
+        // =================================================================
+        // THÊM MỚI: TÌM KIẾM THÔNG TIN TRƯỜNG ĐẠI HỌC CỦA NGƯỜI DÙNG NÀY
+        // =================================================================
+        $vipInfo = null;
+        
+        // 1. Nếu chính người đang in báo cáo là VIP (Tự quét, tự in)
+        if (isset($user->type) && $user->type == 2) {
+            $vipInfo = [
+                'organization' => $user->organization ?? '',
+                'avatar'       => $user->avatar ?? ''
+            ];
+        } 
+        // 2. Nếu là Giảng viên/Học viên (type 0) quét, truy ngược lên VIP bằng ref_by
+        elseif (!empty($user->ref_by)) {
+            // Lấy thông tin user hiện tại trong database để đảm bảo có ref_by chuẩn
+            $currentUserDb = app()->db->get("accounts", ["ref_by"], ["uuid" => $user->uuid]);
+            if ($currentUserDb && !empty($currentUserDb['ref_by'])) {
+                // Truy vấn tài khoản VIP có mã affiliate trùng với ref_by này
+                $vipDb = app()->db->get("accounts", ["organization", "avatar", "type", "status"], [
+                    "affiliate" => $currentUserDb['ref_by']
+                ]);
+                
+                // Chỉ lấy thông tin nếu tuyến trên đúng là VIP và đang hoạt động
+                if ($vipDb && $vipDb['type'] == 2 && $vipDb['status'] == 1) {
+                    $vipInfo = [
+                        'organization' => $vipDb['organization'] ?? '',
+                        'avatar'       => $vipDb['avatar'] ?? ''
+                    ];
+                }
+            }
+        }
+        // =================================================================
+
         // Khởi tạo bộ dịch theo ngôn ngữ của tài liệu
         $lang = $history['lang'] ?? 'vi';
         $__ = $this->getTranslator($lang);
@@ -246,7 +279,7 @@ class ReportController
         $result = [
             'ai'               => $history['ai']               ?? [],
             'plagiarism'       => $history['plagiarism']       ?? [],
-            'grammarSpelling'  => $history['grammar']          ?? [],   // DB=grammar → API=grammarSpelling
+            'grammarSpelling'  => $history['grammar']          ?? [],
             'readability'      => $history['readability']      ?? [],
             'properties'       => $history['metadata']['properties'] ?? [],
             'credits'          => $history['metadata']['credits']    ?? [],
@@ -260,9 +293,10 @@ class ReportController
             'history' => $history,
             'result'  => $result,
             'summary' => $summary,
-            'data'    => $result,   // alias cho pdf_export.php dùng $data
+            'data'    => $result,
             'user'    => $user,
-            '__'      => $__        // Truyền hàm dịch vào view
+            '__'      => $__,
+            'vip'     => $vipInfo // <--- TRUYỀN BIẾN VIP XUỐNG VIEW
         ];
 
         if ($type === 'highlight') {

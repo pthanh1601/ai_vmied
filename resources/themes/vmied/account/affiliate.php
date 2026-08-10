@@ -13,7 +13,7 @@
             <span class="text-primary">Nhận VMIED vô tận</span>
         </h1>
         <p class="text-secondary fs-5 col-lg-7 mx-auto lh-base">
-            Nhận ngay <strong class="text-dark">20% hoa hồng trọn đời</strong> mỗi khi người bạn giới thiệu thực hiện giao dịch nạp tiền thành công.
+            Nhận ngay <strong class="text-dark">10% hoa hồng trọn đời</strong> mỗi khi người bạn giới thiệu thực hiện giao dịch nạp tiền thành công.
         </p>
     </div>
 
@@ -32,8 +32,8 @@
                         <div class="d-flex gap-3">
                             <i data-lucide="check-circle-2" class="text-success flex-shrink-0 mt-1"></i>
                             <div>
-                                <h6 class="fw-bold text-dark mb-1">Hoa hồng 20% trọn đời</h6>
-                                <p class="text-secondary small mb-0">Nhận 20% giá trị mọi giao dịch nạp tiền từ người được giới thiệu, mãi mãi.</p>
+                                <h6 class="fw-bold text-dark mb-1">Hoa hồng 10% trọn đời</h6>
+                                <p class="text-secondary small mb-0">Nhận 10% giá trị mọi giao dịch nạp tiền từ người được giới thiệu, mãi mãi.</p>
                             </div>
                         </div>
                         <div class="d-flex gap-3">
@@ -161,7 +161,7 @@
                         <p class="text-white-50">Gửi liên kết này cho bạn bè để bắt đầu nhận hoa hồng.</p>
                     </div>
                     <div class="bg-white bg-opacity-10 p-2 rounded-4 border border-white border-opacity-10 mb-4">
-                        <div class="small fw-bold text-white-50 ms-2 mb-1">Link đăng ký (Hoa hồng 20% khi nạp tiền)</div>
+                        <div class="small fw-bold text-white-50 ms-2 mb-1">Link đăng ký (Hoa hồng 10% khi nạp tiền)</div>
                         <div class="input-group mb-2">
                             <input type="text" class="form-control bg-transparent border-0 text-white shadow-none font-monospace" id="ref-link" value="https://ai.vmied.com/login?ref=<?=$user->affiliate?>" readonly>
                             <button class="btn btn-primary fw-bold rounded-3 px-4" onclick="navigator.clipboard.writeText(document.getElementById('ref-link').value).then(function(){ alert('Đã sao chép link!'); })">

@@ -21,3 +21,4 @@
     $app->router('/login', 'POST', ['App\Controllers\AuthController', 'Login']);
     $app->router('/register', 'POST', ['App\Controllers\AuthController', 'Register']);
     $app->router('/logout', 'GET', ['App\Controllers\AuthController', 'Logout']);
+    $app->router('/register-vip', 'POST', ['App\Controllers\AuthController', 'RegisterVip']);

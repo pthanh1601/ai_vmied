@@ -172,7 +172,12 @@ class AuthController
     
         $referrer = null;
         if (!empty($refCode)) {
-            $referrer = app()->db->get("accounts", ["id", "uuid", "affiliate"], ["affiliate" => $refCode, "deleted[!]" => 1, "status" => 1]);
+            $referrer = app()->db->get("accounts", ["id", "uuid", "affiliate"], [
+                "affiliate" => $refCode, 
+                "type"      => 2,  // <-- BẮT BUỘC TUYẾN TRÊN PHẢI LÀ VIP
+                "deleted[!]"=> 1, 
+                "status"    => 1
+            ]);
         }
     
         $finalStatus = false;
@@ -240,15 +245,32 @@ class AuthController
     }
 
     protected function jwt($account) {
+        
+        $typeInt      = (int) $account['type'];
+        $organization = $account['organization'] ?? '';
+        $avatar       = $account['avatar'] ?? '';
 
+        // NẾU LÀ HỌC VIÊN (TYPE 0) THUỘC TRƯỜNG VIP -> LẤY LOGO VÀ TÊN TRƯỜNG CỦA TUYẾN TRÊN
+        if ($typeInt === 0 && !empty($account['ref_by'])) {
+            $vipDb = app()->db->get("accounts", ["organization", "avatar", "type", "status"], [
+                "affiliate" => trim($account['ref_by'])
+            ]);
+            
+            if ($vipDb && $vipDb['type'] == 2 && $vipDb['status'] == 1) {
+                $organization = $vipDb['organization'] ?? '';
+                $avatar       = $vipDb['avatar'] ?? ''; // Gán Logo trường cho học viên
+            }
+        }
+        
         app()->session->set('account',[
             "uuid" => $account['uuid'],
             "name" => $account['name'],
-            "avatar" => $account['avatar'],
+            "avatar" => $avatar,
             "email" => $account['email'],
             "point" => $account['point'],
             "affiliate" => $account['affiliate'],
-            "type" => $account['type'] == 0 ? 'Thành viên' : 'Quản trị',
+            "type"         => $typeInt,      // Số: 0, 1, 2
+            "organization" => $organization, // Tên Trường
         ]);
 
         $key = $_ENV['APP_KEY'] ?? 'secret_key';
@@ -303,5 +325,79 @@ class AuthController
         }
         header('Location: /login');
         exit;
+    }
+    
+    public function RegisterVip() {
+        $validate = app()->validate(
+            [
+                'name'         => 'required|min:2',
+                'email'        => 'required|email',
+                'password'     => 'required|min:6',
+                'organization' => 'required'
+            ],
+            [],
+            ['name' => 'Người đại diện', 'email' => 'Email', 'password' => 'Mật khẩu', 'organization' => 'Tên Trường/Đơn vị']
+        );
+    
+        if ($validate->fails()) {
+            return response()->json(['status'  => 'error', 'alert' => $validate->first()]);
+        }
+    
+        $email    = app()->xss->clean(request('email'));
+        $name     = app()->xss->clean(request('name'));
+        $org      = app()->xss->clean(request('organization'));
+        $password = request('password');
+    
+        $account = app()->db->get("accounts", ["email"], ["email" => $email]);
+        if ($account) {
+            return response()->json(['status' => 'error', 'alert' => 'Email này đã được sử dụng.']);
+        }
+    
+        // Xử lý upload logo
+        $avatar = '';
+        if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] == UPLOAD_ERR_OK) {
+            $uploadDir = 'public/uploads/avatar/';
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+            $filename = uniqid() . '-' . basename($_FILES['avatar']['name']);
+            if (move_uploaded_file($_FILES['avatar']['tmp_name'], $uploadDir . $filename)) {
+                $avatar = '/uploads/avatar/' . $filename;
+            }
+        }
+    
+        $finalStatus = false;
+        app()->db->action(function($db) use ($name, $email, $password, $org, $avatar, &$finalStatus) {
+            $insertData = [
+                "type"         => 2, // Tài khoản VIP
+                "uuid"         => uuid(),
+                "name"         => $name,
+                "email"        => $email,
+                "password"     => password_hash($password, PASSWORD_DEFAULT),
+                "status"       => 0, // Chờ Admin duyệt
+                "avatar"       => $avatar,
+                "organization" => $org,
+                "affiliate"    => random_secret(8, 'numeric'),
+                "ref_by"       => 0,
+            ];
+    
+            $accountQuery = $db->insert("accounts", $insertData);
+            if (!$accountQuery) return false;
+            
+            $accountId = $db->id();
+            $db->insert("points", ["account" => $insertData['uuid'], "points" => 0]);
+            $db->insert("wallets", ["account" => $accountId, "balance" => 0]);
+    
+            $finalStatus = true;
+            return true;
+        });
+    
+        if ($finalStatus) {
+            return response()->json([
+                'status' => 'success',
+                'alert'  => 'Đăng ký Đơn vị thành công! Vui lòng chờ Ban Quản Trị xét duyệt.',
+                'redirect' => '/login' // Không đăng nhập ngay vì cần chờ duyệt
+            ]);
+        }
+    
+        return response()->json(['status' => 'error', 'alert'  => 'Có lỗi xảy ra, vui lòng thử lại.']);
     }
 }

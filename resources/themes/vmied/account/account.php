@@ -44,6 +44,12 @@
                 <a href="/app/support" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('profileDrawer')).hide();" class="list-group-item list-group-item-action border-0 rounded-3 py-3 px-3 d-flex align-items-center gap-3 text-secondary fw-medium hover-bg-light">
                     <i data-lucide="help-circle" style="width: 18px;"></i> Trợ giúp & Hỗ trợ
                 </a>
+                
+                <?php if ($user->type === 'Quản trị'): ?>
+                <a href="<?= $user->type_id == 1 ? '/admin/vips' : '/app/members' ?>" hx-boost="false" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('profileDrawer')).hide();" class="list-group-item list-group-item-action border-0 rounded-3 py-3 px-3 d-flex align-items-center gap-3 text-secondary fw-medium hover-bg-light">
+                    <i data-lucide="users" style="width: 18px;"></i> <?= $user->type_id == 1 ? 'Quản lý VIP' : 'Quản lý thành viên' ?>
+                </a>
+                <?php endif; ?>
             </div>
         </div>
 

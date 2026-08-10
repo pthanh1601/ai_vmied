@@ -655,10 +655,7 @@ if (!empty($blocks)) {
                         <?= $__('confident_text_1') ?> <?= $authorLabelFull ?><?= $__('confident_text_2') ?> <?= $conf ?>% <?= $__('confident_text_3') ?> <?= $authorLabel ?>.
                     </p>
 
-                    <div class="text-start small text-muted border-top pt-3">
-                        <div class="mb-1"><strong><?= $__('model_used') ?></strong> <?= htmlspecialchars($summary['ai_model'] ?? 'Đa ngôn ngữ') ?></div>
-                        <div><strong><?= $__('date') ?></strong> <?= $dateOnlyFormatted ?></div>
-                    </div>
+                    <!-- Removed Mô hình and Ngày -->
                 </div>
             </div>
 
