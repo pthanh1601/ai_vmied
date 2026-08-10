@@ -54,11 +54,16 @@
                             <!-- Profile Header -->
                             <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start gap-4 mb-5">
                                 <div class="position-relative">
-                                    <img src="https://ui-avatars.com/api/?name=<?=$user->name?>&background=0ea5e9&color=fff&size=128" 
-                                         class="rounded-circle shadow" width="100" height="100">
-                                    <div class="position-absolute bottom-0 end-0 bg-white p-1 rounded-circle shadow-sm border border-light cursor-pointer hover-lift">
-                                        <i data-lucide="camera" width="16" class="text-dark"></i>
-                                    </div>
+                                    <!-- Hiển thị Avatar hiện tại nếu có, ngược lại lấy ảnh mặc định -->
+                                    <img id="avatar-preview" src="<?= !empty($user->avatar) ? htmlspecialchars($user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($user->name).'&background=0ea5e9&color=fff&size=128' ?>" 
+                                         class="rounded-circle shadow bg-white border" width="100" height="100" style="object-fit: contain;">
+                                    
+                                    <!-- Chỉ hiện nút đổi ảnh nếu là VIP (type_id = 2) -->
+                                    <?php if(isset($user->type_id) && $user->type_id == 2): ?>
+                                        <label for="avatar-upload" class="position-absolute bottom-0 end-0 bg-white p-2 rounded-circle shadow border border-light cursor-pointer hover-lift" title="Đổi Logo Trường/Đơn vị">
+                                            <i data-lucide="camera" width="16" class="text-dark"></i>
+                                        </label>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="text-center text-md-start pt-2">
                                     <h2 class="fw-bold text-dark mb-1"><?=$user->name?></h2>
@@ -79,13 +84,19 @@
                                     <button class="btn btn-link text-decoration-none p-0 text-secondary"><i data-lucide="edit-2" width="16"></i></button>
                                 </div>
                                 <div x-data="Form()">
-                                    <form 
-                                        hx-post="/app/account/change-infomation" 
-                                        hx-swap="none"
-                                        @htmx:before-request="startRequest()"
-                                        @htmx:after-request="handleResponse($event)"
-                                        class="d-grid gap-3"
+                                <form 
+                                    hx-post="/app/account/change-infomation" 
+                                    hx-swap="none"
+                                    enctype="multipart/form-data" 
+                                    @htmx:before-request="startRequest()"
+                                    @htmx:after-request="handleResponse($event); if(JSON.parse($event.detail.xhr.response).status === 'success') setTimeout(() => window.location.reload(), 1200);"
+                                    class="d-grid gap-3"
                                     >
+                                        
+                                        <!-- Input File ẩn (Chỉ VIP mới có quyền submit Logo) -->
+                                        <?php if(isset($user->type_id) && $user->type_id == 2): ?>
+                                            <input type="file" name="avatar" id="avatar-upload" accept="image/*" class="d-none" onchange="document.getElementById('avatar-preview').src = window.URL.createObjectURL(this.files[0])">
+                                        <?php endif; ?>
                                         <div class="row g-4">
                                             <div class="col-md-6">
                                                 <label class="form-label fw-bold text-secondary small mb-2">Họ và tên</label>
@@ -193,7 +204,7 @@
                         <div class="tab-pane fade" id="section-billing" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <h4 class="fw-bold mb-0">Ví của tôi</h4>
-                                <a href="deposit.html" class="btn btn-light rounded-pill border fw-bold text-dark px-4 small">Lịch sử đầy đủ</a>
+                                <a href="/app/payments" class="btn btn-light rounded-pill border fw-bold text-dark px-4 small">Lịch sử đầy đủ</a>
                             </div>
 
                             <div class="row g-4 mb-5">
@@ -211,7 +222,7 @@
                                             <i data-lucide="credit-card" class="text-white opacity-50" width="32"></i>
                                         </div>
                                         <div class="mt-4 d-flex gap-2 position-relative z-1">
-                                            <button onclick="window.location.href='deposit.html'" class="btn btn-light fw-bold rounded-pill px-4 py-2 border-0 shadow-sm text-dark hover-lift">
+                                            <button onclick="window.location.href='/app/payments'" class="btn btn-light fw-bold rounded-pill px-4 py-2 border-0 shadow-sm text-dark hover-lift">
                                                 Nạp tiền
                                             </button>
                                             <button class="btn btn-outline-light fw-bold rounded-pill px-4 py-2 hover-lift" data-bs-toggle="modal" data-bs-target="#modalConvertWallet">
@@ -287,13 +298,23 @@
                                                         $statusText = 'Đang xử lý';
                                                         if ($payment['status'] == 1) $statusText = 'Thành công';
                                                         elseif ($payment['status'] == 2) $statusText = 'Thất bại';
-
+                                                    
                                                         $isPositive = in_array($payment['type'], ['deposit', 'commission']);
                                                         $amountSign = $isPositive ? '+' : '-';
                                                         $amountColor = $isPositive ? 'text-success' : 'text-dark';
                                                         $iconName = $isPositive ? 'plus' : 'zap';
                                                         
-                                                        $displayAmount = $payment['vmied'] ?? $payment['amount'];
+                                                        // Tách riêng logic lấy số tiền và Đơn vị (V hoặc VNĐ)
+                                                        if ($payment['type'] === 'commission') {
+                                                            $displayAmount = $payment['commission']; // Lấy cột tiền hoa hồng
+                                                            $unit = 'VNĐ';
+                                                        } elseif ($payment['type'] === 'withdraw') {
+                                                            $displayAmount = $payment['amount']; // Rút tiền thật
+                                                            $unit = 'VNĐ';
+                                                        } else {
+                                                            $displayAmount = $payment['vmied']; // Điểm nạp / Tiêu dùng
+                                                            $unit = 'V';
+                                                        }
                                                     ?>
                                                     <tr>
                                                         <td class="ps-4 py-3 border-0" width="60">

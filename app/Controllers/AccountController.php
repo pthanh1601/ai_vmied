@@ -32,9 +32,9 @@ class AccountController
             "accounts.uuid" => $user->uuid
         ]);
         
+        // $account->type = $account->type == 0 ? 'Thành Viên' : 'Quản trị';
         $account->type_id = $account->type;
         $account->type = $account->type == 0 ? 'Thành Viên' : 'Quản trị';
-        
         if (app()->request->isHtmx()) {
             return view('account/account', [
                 'user' => $account,
@@ -64,25 +64,30 @@ class AccountController
         [
             "accounts.uuid"=>$user->uuid
         ]);
-        $account->type = $account->type==0?'ThÃ nh ViÃªn':'Quáº£n trá»‹';
+        
+        $account->type_id = $account->type;
+        $account->type = $account->type==0 ? 'Thành Viên' : 'Quản trị';
 
-        $monthlyIncome = app()->db->sum("transactions", "vmied", [
-            "account" => [$account->id, $user->uuid],
-            "status" => 1,
-            "type" => ["deposit", "commission"],
-            "created_at[<>]" => [date('Y-m-01 00:00:00'), date('Y-m-t 23:59:59')]
+        // 1. CHUẨN HÓA LOGIC: THÁNG NÀY NHẬN ĐƯỢC BAO NHIÊU ĐIỂM (V)
+        $monthlyIncome = app()->db->sum("points_historys", "point", [
+            "account"  => $user->uuid,
+            "point[>]" => 0, // Chỉ tính các giao dịch CỘNG điểm
+            "date[<>]" => [date('Y-m-01 00:00:00'), date('Y-m-t 23:59:59')],
+            "deleted"  => 0
         ]) ?: 0;
 
+        // 2. CHUẨN HÓA LOGIC: TỔNG SỐ ĐIỂM ĐÃ SỬ DỤNG
         $totalUsed = abs(app()->db->sum("points_historys", "point", [
-            "account" => $user->uuid,
-            "point[<]" => 0,        
-            "deleted" => 0          
+            "account"  => $user->uuid,
+            "point[<]" => 0, // Chỉ tính các giao dịch TRỪ điểm
+            "deleted"  => 0          
         ]) ?: 0);
 
+        // 3. SỬA LỖI QUERY LỊCH SỬ GIAO DỊCH (Chỉ dùng ID)
         $payments = app()->db->select("transactions", "*", [
-            "account" => [$account->id, $user->uuid],
-            "ORDER" => ["created_at" => "DESC"],
-            "LIMIT" => 5
+            "account" => $account->id, // Sửa lỗi ở đây
+            "ORDER"   => ["created_at" => "DESC"],
+            "LIMIT"   => 5
         ]) ?: [];
         
         $walletBalance = app()->db->get("wallets", "balance", [
@@ -99,20 +104,22 @@ class AccountController
     }
 
     public function UpdateInformation(){
-        $userId = app()->request->user->uuid;
+        $userSession = app()->request->user;
+        $userId = $userSession->uuid;
+        
         if (!$userId) {
-            return response()->json(['status' => 'error', 'alert' => 'Vui lÃ²ng Ä‘Äƒng nháº­p'], 401);
+            return response()->json(['status' => 'error', 'alert' => 'Vui lòng đăng nhập'], 401);
         }
 
-        // 2. Validate dá»¯ liá»‡u
+        // Validate dữ liệu
         $validator = app()->validate(
             [
                 'name' => 'required',
-                'phone' => 'required', // VÃ­ dá»¥ thÃªm validate sá»‘ Ä‘iá»‡n thoáº¡i
+                'phone' => 'required', 
             ],
             [
-                'name.required' => 'TÃªn khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng',
-                'phone.required' => 'Sá»‘ Ä‘iá»‡n thoáº¡i khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng',
+                'name.required' => 'Tên không được để trống',
+                'phone.required' => 'Số điện thoại không được để trống',
             ]
         );
 
@@ -123,47 +130,78 @@ class AccountController
             ], 400);
         }
 
-        // 3. Chuáº©n bá»‹ dá»¯ liá»‡u update (Clean XSS)
+        // Chuẩn bị dữ liệu update
         $updateData = [
             "name"         => app()->xss->clean(request('name')),
             "phone"        => app()->xss->clean(request('phone')),
             "organization" => app()->xss->clean(request('organization')),
         ];
 
-        // 4. Thá»±c hiá»‡n Update vÃ o DB
-        // QUAN TRá»ŒNG: Tham sá»‘ thá»© 3 lÃ  Ä‘iá»u kiá»‡n WHERE Ä‘á»ƒ khÃ´ng update nháº§m ngÆ°á»i khÃ¡c
+        // LOGIC ĐỔI LOGO DÀNH RIÊNG CHO VIP (type = 2)
+        if ($userSession->type == 2 && isset($_FILES['avatar']) && $_FILES['avatar']['error'] == UPLOAD_ERR_OK) {
+            $uploadDir = 'public/uploads/avatar/';
+            $rootPath  = dirname(__DIR__, 2) . '/';
+            $fullDir   = $rootPath . $uploadDir;
+
+            if (!is_dir($fullDir)) {
+                mkdir($fullDir, 0755, true);
+            }
+
+            // Loại bỏ ký tự đặc biệt khỏi tên file
+            $safeName = preg_replace('/[^a-zA-Z0-9.\-_]/', '', basename($_FILES['avatar']['name']));
+            $filename = uniqid() . '-' . $safeName;
+            $destination = $fullDir . $filename;
+            
+            if (move_uploaded_file($_FILES['avatar']['tmp_name'], $destination)) {
+                $updateData['avatar'] = '/uploads/avatar/' . $filename;
+            }
+        }
+
+        // Cập nhật Database
         $result = app()->db->update("accounts", $updateData, ["uuid" => $userId]);
 
         if ($result) {
+            // Cập nhật lại Session để Logo trên thanh Menu thay đổi ngay lập tức
+            $sessionAccount = app()->session->get('account');
+            if ($sessionAccount) {
+                $sessionAccount['name']         = $updateData['name'];
+                $sessionAccount['organization'] = $updateData['organization'];
+                if (isset($updateData['avatar'])) {
+                    $sessionAccount['avatar']   = $updateData['avatar'];
+                }
+                app()->session->set('account', $sessionAccount);
+            }
+
             return response()->json([
                 'status' => 'success',
-                'alert' => 'Cáº­p nháº­t thÃ´ng tin thÃ nh cÃ´ng',
+                'alert'  => 'Cập nhật thông tin thành công',
+                'reload' => true // Reload lại trang để tải logo mới
             ]);
         }
 
-        return response()->json(['status' => 'error', 'alert' => 'CÃ³ lá»—i xáº£y ra, vui lÃ²ng thá»­ láº¡i'], 500);
+        return response()->json(['status' => 'error', 'alert' => 'Có lỗi xảy ra, vui lòng thử lại'], 500);
     }
 
-    // HÃ€M 2: CHá»ˆ Äá»”I Máº¬T KHáº¨U
+    // HÀM 2: CHỈ ĐỔI MẬT KHẨU
     public function ChangePassword(){
-        // 1. Láº¥y ID ngÆ°á»i dÃ¹ng
+        // 1. Lấy ID người dùng
         $userId = app()->request->user->uuid;
         if (!$userId) {
-            return response()->json(['status' => 'error', 'alert' => 'Vui lÃ²ng Ä‘Äƒng nháº­p'], 401);
+            return response()->json(['status' => 'error', 'alert' => 'Vui lòng đăng nhập'], 401);
         }
 
-        // 2. Validate dá»¯ liá»‡u
+        // 2. Validate dữ liệu
         $validator = app()->validate(
             [
                 'password_old'     => 'required',
-                'password'         => 'required|min:6', // Máº­t kháº©u má»›i tá»‘i thiá»ƒu 6 kÃ½ tá»±
-                'password_confirm' => 'required|same:password', // Pháº£i khá»›p vá»›i máº­t kháº©u má»›i
+                'password'         => 'required|min:6', // Mật khẩu mới tối thiểu 6 ký tự
+                'password_confirm' => 'required|same:password', // Phải khớp với mật khẩu mới
             ],
             [
-                'password_old.required'     => 'Vui lÃ²ng nháº­p máº­t kháº©u cÅ©',
-                'password.required'         => 'Vui lÃ²ng nháº­p máº­t kháº©u má»›i',
-                'password.min'              => 'Máº­t kháº©u má»›i pháº£i cÃ³ Ã­t nháº¥t 6 kÃ½ tá»±',
-                'password_confirm.required' => 'Vui lÃ²ng nháº­p láº¡i máº­t kháº©u má»›i',
+                'password_old.required'     => 'Vui lòng nhập mật khẩu cũ',
+                'password.required'         => 'Vui lòng nhập mật khẩu mới',
+                'password.min'              => 'Mật khẩu mới phải có ít nhất 6 ký tự',
+                'password_confirm.required' => 'Vui lòng nhập lại mật khẩu mới',
             ]
         );
 
@@ -174,27 +212,27 @@ class AccountController
             ], 400);
         }
 
-        // 3. Kiá»ƒm tra máº­t kháº©u cÅ© cÃ³ Ä‘Ãºng khÃ´ng
-        // Giáº£ sá»­ láº¥y user tá»« DB
+        // 3. Kiểm tra mật khẩu cũ có đúng không
+        // Giả sử lấy user từ DB
         $user = app()->db->get('accounts',"*", ['uuid' => $userId]); 
 
         if (!$user) {
-            return response()->json(['status' => 'error', 'alert' => 'TÃ i khoáº£n khÃ´ng tá»“n táº¡i'], 404);
+            return response()->json(['status' => 'error', 'alert' => 'Tài khoản không tồn tại'], 404);
         }
 
-        // So sÃ¡nh máº­t kháº©u cÅ© (DÃ¹ng password_verify náº¿u máº­t kháº©u Ä‘Æ°á»£c mÃ£ hÃ³a Hash)
+        // So sánh mật khẩu cũ (Dùng password_verify nếu mật khẩu được mã hóa Hash)
         if (!password_verify(request('password_old'), $user['password'])) {
-            return response()->json(['status' => 'error', 'alert' => 'Máº­t kháº©u cÅ© khÃ´ng chÃ­nh xÃ¡c'], 400);
+            return response()->json(['status' => 'error', 'alert' => 'Mật khẩu cũ không chính xác'], 400);
         }
 
         if (request('password')!==request('password_confirm')) {
             return response()->json([
                 'status'  => 'error',
-                'alert' => 'Máº­t kháº©u xÃ¡c nháº­n khÃ´ng giá»‘ng.'
+                'alert' => 'Mật khẩu xác nhận không giống.'
             ], 401);
         }
 
-        // 4. Update máº­t kháº©u má»›i (MÃƒ HÃ“A TRÆ¯á»šC KHI LÆ¯U)
+        // 4. Update mật khẩu mới (MÃ HÓA TRƯỚC KHI LƯU)
         $updateData = [
             "password" => password_hash(request('password'), PASSWORD_BCRYPT),
         ];
@@ -203,7 +241,7 @@ class AccountController
 
         return response()->json([
             'status' => 'success',
-            'alert' => 'Äá»•i máº­t kháº©u thÃ nh cÃ´ng',
+            'alert' => 'Đổi mật khẩu thành công',
         ]);
     }
     
@@ -214,29 +252,29 @@ class AccountController
     //     if (!$uuid) {
     //         header('Content-Type: application/json');
     //         http_response_code(401);
-    //         echo json_encode(['status' => 'error', 'message' => 'Vui lÃ²ng Ä‘Äƒng nháº­p.']);
+    //         echo json_encode(['status' => 'error', 'message' => 'Vui lòng đăng nhập.']);
     //         exit;
     //     }
 
     //     if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
     //         header('Content-Type: application/json');
     //         http_response_code(400);
-    //         echo json_encode(['status' => 'error', 'message' => 'KhÃ´ng tÃ¬m tháº¥y file hoáº·c file bá»‹ lá»—i.']);
+    //         echo json_encode(['status' => 'error', 'message' => 'Không tìm thấy file hoặc file bị lỗi.']);
     //         exit;
     //     }
 
     //     $file = $_FILES['file'];
     //     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
-    //     // Chá»‰ cho phÃ©p Ä‘á»‹nh dáº¡ng .pdf vÃ  .docx Ä‘Ãºng nhÆ° frontend yÃªu cáº§u
+    //     // Chỉ cho phép định dạng .pdf và .docx đúng như frontend yêu cầu
     //     if (!in_array($ext, ['pdf', 'docx'])) {
     //         header('Content-Type: application/json');
     //         http_response_code(400);
-    //         echo json_encode(['status' => 'error', 'message' => 'Äá»‹nh dáº¡ng file khÃ´ng há»— trá»£ (Chá»‰ nháº­n .pdf, .docx).']);
+    //         echo json_encode(['status' => 'error', 'message' => 'Định dạng file không hỗ trợ (Chỉ nhận .pdf, .docx).']);
     //         exit;
     //     }
 
-    //     // Äá»‹nh nghÄ©a thÆ° má»¥c lÆ°u trá»¯ trÃªn live host (Äáº£m báº£o thÆ° má»¥c nÃ y cÃ³ quyá»n ghi - Chmod 755 hoáº·c 777)
+    //     // Định nghĩa thư mục lưu trữ trên live host (Đảm bảo thư mục này có quyền ghi - Chmod 755 hoặc 777)
     //     $uploadDir = 'uploads/scans/' . date('Y/m') . '/';
     //     if (!is_dir($uploadDir)) {
     //         mkdir($uploadDir, 0755, true);
@@ -253,14 +291,14 @@ class AccountController
     //         header('Content-Type: application/json');
     //         echo json_encode([
     //             'status' => 'success',
-    //             'message' => 'Upload file thÃ nh cÃ´ng.',
+    //             'message' => 'Upload file thành công.',
     //             'url' => $fileUrl
     //         ]);
     //         exit;
     //     } else {
     //         header('Content-Type: application/json');
     //         http_response_code(500);
-    //         echo json_encode(['status' => 'error', 'message' => 'KhÃ´ng thá»ƒ lÆ°u file vÃ o thÆ° má»¥c mÃ¡y chá»§.']);
+    //         echo json_encode(['status' => 'error', 'message' => 'Không thể lưu file vào thư mục máy chủ.']);
     //         exit;
     //     }
     // }
@@ -273,18 +311,18 @@ class AccountController
         if (!$uuid) {
             header('Content-Type: application/json');
             http_response_code(401);
-            echo json_encode(['status' => 'error', 'message' => 'Vui lÃ²ng Ä‘Äƒng nháº­p.']);
+            echo json_encode(['status' => 'error', 'message' => 'Vui lòng đăng nhập.']);
             exit;
         }
         if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
             header('Content-Type: application/json');
             http_response_code(400);
     
-            // BÃ¡o rÃµ lÃ½ do náº¿u lá»—i do vÆ°á»£t giá»›i háº¡n upload cá»§a PHP (upload_max_filesize / post_max_size)
+            // Báo rõ lý do nếu lỗi do vượt giới hạn upload của PHP (upload_max_filesize / post_max_size)
             $err = $_FILES['file']['error'] ?? UPLOAD_ERR_NO_FILE;
             $msg = in_array($err, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE])
-                ? 'File vÆ°á»£t quÃ¡ giá»›i háº¡n upload cho phÃ©p.'
-                : 'KhÃ´ng tÃ¬m tháº¥y file hoáº·c file bá»‹ lá»—i.';
+                ? 'File vượt quá giới hạn upload cho phép.'
+                : 'Không tìm thấy file hoặc file bị lỗi.';
     
             echo json_encode(['status' => 'error', 'message' => $msg]);
             exit;
@@ -292,16 +330,16 @@ class AccountController
     
         $file = $_FILES['file'];
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        // Chá»‰ cho phÃ©p Ä‘á»‹nh dáº¡ng .pdf vÃ  .docx Ä‘Ãºng nhÆ° frontend yÃªu cáº§u
+        // Chỉ cho phép định dạng .pdf và .docx đúng như frontend yêu cầu
         if (!in_array($ext, ['pdf', 'docx'])) {
             header('Content-Type: application/json');
             http_response_code(400);
-            echo json_encode(['status' => 'error', 'message' => 'Äá»‹nh dáº¡ng file khÃ´ng há»— trá»£ (Chá»‰ nháº­n .pdf, .docx).']);
+            echo json_encode(['status' => 'error', 'message' => 'Định dạng file không hỗ trợ (Chỉ nhận .pdf, .docx).']);
             exit;
         }
     
-        // â”€â”€â”€ Giá»›i háº¡n kÃ­ch thÆ°á»›c file â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        $maxSizeBytes = 20 * 1024 * 1024; // 20MB â€” chá»‰nh sá»‘ nÃ y theo nhu cáº§u
+        // ─── Giới hạn kích thước file ──────────────────────────────
+        $maxSizeBytes = 20 * 1024 * 1024; // 20MB — chỉnh số này theo nhu cầu
         if ($file['size'] > $maxSizeBytes) {
             $sizeMB = round($file['size'] / 1024 / 1024, 1);
             $maxMB  = $maxSizeBytes / 1024 / 1024;
@@ -309,13 +347,13 @@ class AccountController
             http_response_code(413); // Payload Too Large
             echo json_encode([
                 'status'  => 'error',
-                'message' => "File quÃ¡ lá»›n ({$sizeMB}MB). Vui lÃ²ng chá»n file dÆ°á»›i {$maxMB}MB.",
+                'message' => "File quá lớn ({$sizeMB}MB). Vui lòng chọn file dưới {$maxMB}MB.",
             ]);
             exit;
         }
-        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─────────────────────────────────────────────────────────
     
-        // Äá»‹nh nghÄ©a thÆ° má»¥c lÆ°u trá»¯ trÃªn live host (Äáº£m báº£o thÆ° má»¥c nÃ y cÃ³ quyá»n ghi - Chmod 755 hoáº·c 777)
+        // Định nghĩa thư mục lưu trữ trên live host (Đảm bảo thư mục này có quyền ghi - Chmod 755 hoặc 777)
         $uploadDir = 'uploads/scans/' . date('Y/m') . '/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
@@ -329,14 +367,14 @@ class AccountController
             header('Content-Type: application/json');
             echo json_encode([
                 'status' => 'success',
-                'message' => 'Upload file thÃ nh cÃ´ng.',
+                'message' => 'Upload file thành công.',
                 'url' => $fileUrl
             ]);
             exit;
         } else {
             header('Content-Type: application/json');
             http_response_code(500);
-            echo json_encode(['status' => 'error', 'message' => 'KhÃ´ng thá»ƒ lÆ°u file vÃ o thÆ° má»¥c mÃ¡y chá»§.']);
+            echo json_encode(['status' => 'error', 'message' => 'Không thể lưu file vào thư mục máy chủ.']);
             exit;
         }
     }
@@ -361,7 +399,7 @@ class AccountController
 
         $logs = app()->db->select("originality_history", [
             "id", "title", "ai_score", "plag_score",
-            "grammar_errors", "readability_score",   // â† thÃªm 2 cá»™t nÃ y
+            "grammar_errors", "readability_score",   // ← thêm 2 cột này
             "points_used", "created_at"
         ], [
             "account_uuid" => $user->uuid,
@@ -374,49 +412,49 @@ class AccountController
             $aiScore       = (float) ($item['ai_score']       ?? 0);
             $plagScore     = (float) ($item['plag_score']     ?? 0);
             $grammarErrors = (int)   ($item['grammar_errors'] ?? 0);
-            $readScore     = $item['readability_score'] ?? null; // cÃ³ thá»ƒ null hoáº·c 0 tháº­t, cáº§n phÃ¢n biá»‡t
+            $readScore     = $item['readability_score'] ?? null; // có thể null hoặc 0 thật, cần phân biệt
             $id = $item['id'];
     
             $resultText  = 'N/A';
             $colorClass  = 'text-primary';
             $icon        = 'file-text';
             $bgColor     = 'bg-primary-subtle text-primary';
-            $serviceText = 'ChÆ°a xÃ¡c Ä‘á»‹nh';
+            $serviceText = 'Chưa xác định';
     
             if ($plagScore > 0) {
-                $resultText  = "{$plagScore}% TrÃ¹ng láº·p";
+                $resultText  = "{$plagScore}% Trùng lặp";
                 $colorClass  = $plagScore >= 20 ? 'text-danger' : 'text-warning';
                 $icon        = 'file-warning';
                 $bgColor     = 'bg-danger-subtle text-danger';
-                $serviceText = 'Äáº¡o vÄƒn';
+                $serviceText = 'Đạo văn';
             } elseif ($aiScore > 0) {
                 $humanPct    = round(100 - $aiScore, 1);
                 $resultText  = "{$humanPct}% Human";
                 $colorClass  = $humanPct >= 80 ? 'text-success' : 'text-danger';
                 $serviceText = 'Check AI';
             } elseif ($grammarErrors > 0) {
-                $resultText  = "{$grammarErrors} lá»—i";
+                $resultText  = "{$grammarErrors} lỗi";
                 $colorClass  = $grammarErrors > 10 ? 'text-danger' : 'text-warning';
                 $icon        = 'spell-check';
                 $bgColor     = 'bg-warning-subtle text-warning';
-                $serviceText = 'Ngá»¯ phÃ¡p';
+                $serviceText = 'Ngữ pháp';
             } elseif ($readScore !== null) {
-                $resultText  = "Äiá»ƒm {$readScore}";
+                $resultText  = "Điểm {$readScore}";
                 $colorClass  = 'text-info';
                 $icon        = 'book-open';
                 $bgColor     = 'bg-info-subtle text-info';
-                $serviceText = 'Äá»c hiá»ƒu';
+                $serviceText = 'Đọc hiểu';
             } elseif ($grammarErrors === 0 && ($item['grammar_errors'] ?? null) !== null) {
-                // CÃ³ báº­t check ngá»¯ phÃ¡p nhÆ°ng 0 lá»—i -> váº«n nÃªn hiá»‡n, khÃ´ng pháº£i "chÆ°a xÃ¡c Ä‘á»‹nh"
-                $resultText  = 'KhÃ´ng lá»—i';
+                // Có bật check ngữ pháp nhưng 0 lỗi -> vẫn nên hiện, không phải "chưa xác định"
+                $resultText  = 'Không lỗi';
                 $colorClass  = 'text-success';
                 $icon        = 'spell-check';
                 $bgColor     = 'bg-success-subtle text-success';
-                $serviceText = 'Ngá»¯ phÃ¡p';
+                $serviceText = 'Ngữ pháp';
             }
     
             $histories[] = [
-                'title'      => $item['title'] ?? 'TÃ i liá»‡u khÃ´ng tÃªn',
+                'title'      => $item['title'] ?? 'Tài liệu không tên',
                 'service'    => $serviceText,
                 'result'     => $resultText,
                 'credits'    => $item['points_used'] ?? 0,
@@ -428,7 +466,7 @@ class AccountController
             ];
         }
         
-        // â”€â”€ Chart data: 30 ngÃ y gáº§n nháº¥t â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Chart data: 30 ngày gần nhất ─────────────────
         $chartLabels = [];
         $chartData   = [];
         for ($i = 29; $i >= 0; $i--) {
@@ -444,27 +482,27 @@ class AccountController
             }
         }
     
-        // â”€â”€ Lá»‹ch sá»­ giao dá»‹ch (Tá»‘i Æ°u: Chá»‰ láº¥y cá»™t cáº§n, LIMIT 50) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Lịch sử giao dịch (Tối ưu: Chỉ lấy cột cần, LIMIT 50) ────────────────────────────
         $rawTransactions = app()->db->select("transactions", [
             "id", "type", "vmied", "amount", "created_at" 
         ], [
             "account" => $user->uuid,
             "ORDER"   => ["created_at" => "DESC"],
-            "LIMIT"   => 50 // Giá»›i háº¡n giao dá»‹ch hiá»ƒn thá»‹
+            "LIMIT"   => 50 // Giới hạn giao dịch hiển thị
         ]) ?: [];
     
         $transactions = array_map(function ($t) {
             $t['type_label'] = match ($t['type'] ?? 'deposit') {
-                'deposit'    => 'Náº¡p tiá»n',
-                'withdraw'   => 'RÃºt tiá»n',
-                'commission' => 'Hoa há»“ng',
-                default      => 'KhÃ¡c'
+                'deposit'    => 'Nạp tiền',
+                'withdraw'   => 'Rút tiền',
+                'commission' => 'Hoa hồng',
+                default      => 'Khác'
             };
             $t['display_amount'] = $t['vmied'] ?? $t['amount'] ?? 0;
             return $t;
         }, $rawTransactions);
     
-        // Giáº£i phÃ³ng bá»™ nhá»› cá»§a biáº¿n táº¡m trung gian trÆ°á»›c khi render view
+        // Giải phóng bộ nhớ của biến tạm trung gian trước khi render view
         unset($logs, $rawTransactions);
 
         return view('account/history', [
@@ -480,7 +518,7 @@ class AccountController
     {
         $user = app()->request->user;
     
-        // Xá»­ lÃ½ lá»—i Ã©p kiá»ƒu Array thÃ nh sá»‘ 1 cá»§a PHP 8 khi Router truyá»n param
+        // Xử lý lỗi ép kiểu Array thành số 1 của PHP 8 khi Router truyền param
         $finalId = is_array($id) ? (int) end($id) : (int) $id;
         if ($finalId <= 0) {
             $finalId = (int) request('id');
@@ -494,14 +532,14 @@ class AccountController
         if (!$history) {
             $checkIdOnly = app()->db->get('originality_history', '*', ['id' => $finalId]);
             if ($checkIdOnly) {
-                return '<div class="p-5 text-center text-danger">Lá»—i: BÃ¡o cÃ¡o tá»“n táº¡i nhÆ°ng khÃ´ng thuá»™c vá» UUID: '
+                return '<div class="p-5 text-center text-danger">Lỗi: Báo cáo tồn tại nhưng không thuộc về UUID: '
                     . $user->uuid
-                    . ' (UUID trong bÃ i lÃ : ' . $checkIdOnly['account_uuid'] . ')</div>';
+                    . ' (UUID trong bài là: ' . $checkIdOnly['account_uuid'] . ')</div>';
             }
-            return '<div class="p-5 text-center text-muted">Lá»—i: ID bÃ¡o cÃ¡o (' . $finalId . ') khÃ´ng tá»“n táº¡i trong database.</div>';
+            return '<div class="p-5 text-center text-muted">Lỗi: ID báo cáo (' . $finalId . ') không tồn tại trong database.</div>';
         }
     
-        // â”€â”€ Decode táº¥t cáº£ cá»™t JSON â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Decode tất cả cột JSON ────────────────────────────────────────
         $jsonCols = ['ai', 'plagiarism', 'grammar', 'readability', 'facts', 'content_optimizer', 'metadata'];
         foreach ($jsonCols as $col) {
             if (!empty($history[$col]) && is_string($history[$col])) {
@@ -516,7 +554,7 @@ class AccountController
         }
         $history['facts'] = array_values($history['facts'] ?? []);
 
-        // â”€â”€ Phá»¥c há»“i dá»¯ liá»‡u náº¿u nÃ³ náº±m áº©n trong cá»™t metadata (Dá»¯ liá»‡u cÅ©) â”€â”€
+        // ── Phục hồi dữ liệu nếu nó nằm ẩn trong cột metadata (Dữ liệu cũ) ──
         $metadata = $history['metadata'] ?? [];
         $resultData = $metadata['result']['results'] ?? $metadata['results'] ?? $metadata;
     
@@ -531,16 +569,16 @@ class AccountController
             'credits'          => !empty($history['metadata']['credits']) ? $history['metadata']['credits'] : ($resultData['credits'] ?? []),
         ];
     
-        // â”€â”€ CÃ¡c sá»‘ liá»‡u tá»•ng há»£p Ä‘á»ƒ hiá»ƒn thá»‹ nhanh â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Các số liệu tổng hợp để hiển thị nhanh ───────────────────────
         $summary = [
-            'title'             => $history['title']          ?? 'BÃ¡o cÃ¡o',
+            'title'             => $history['title']          ?? 'Báo cáo',
             'type'              => $history['type']           ?? 'text',
             'word_count'        => $history['word_count']     ?? 0,
             'points_used'       => $history['points_used']    ?? 0,
             'ai_score'          => $history['ai_score']       ?? null,   // % AI (0-100)
             'ai_model'          => $history['ai_model']       ?? null,
-            'plag_score'        => $history['plag_score']     ?? null,   // % Ä‘áº¡o vÄƒn
-            'grammar_errors'    => $history['grammar_errors'] ?? null,   // sá»‘ lá»—i
+            'plag_score'        => $history['plag_score']     ?? null,   // % đạo văn
+            'grammar_errors'    => $history['grammar_errors'] ?? null,   // số lỗi
             'readability_score' => $history['readability_score'] ?? null,
             'readability_grade' => $history['readability_grade'] ?? null,
             'facts_total'       => $history['facts_total']    ?? null,
@@ -592,7 +630,7 @@ class AccountController
             "status"  => 1
         ]) ?: 0);
     
-        // Query lá»‹ch sá»­ hoa há»“ng JOIN accounts láº¥y email
+        // Query lịch sử hoa hồng JOIN accounts lấy email
         $referrals = app()->db->select("transactions", [
             "[>]accounts" => ["account" => "id"]
         ], [
@@ -622,7 +660,7 @@ class AccountController
         ]);
     }
     
-    // ThÃªm tÃ i khoáº£n ngÃ¢n hÃ ng
+    // Thêm tài khoản ngân hàng
     public function AddBankAccount() {
         $userId = app()->request->user->uuid;
     
@@ -637,7 +675,7 @@ class AccountController
             return response()->json(['status' => 'error', 'alert' => $validator->first()], 400);
         }
     
-        // Náº¿u set default â†’ reset cÃ¡c tÃ i khoáº£n khÃ¡c
+        // Nếu set default → reset các tài khoản khác
         if (request('is_default')) {
             app()->db->update("bank_accounts", ["is_default" => 0], ["account" => $userId]);
         }
@@ -656,7 +694,7 @@ class AccountController
     
         return response()->json([
             'status' => 'success',
-            'alert'  => 'ThÃªm tÃ i khoáº£n thÃ nh cÃ´ng',
+            'alert'  => 'Thêm tài khoản thành công',
             'data'   => $data
         ]);
     }
@@ -666,7 +704,7 @@ class AccountController
         $userId = app()->request->user->uuid;
         $userIdInt = app()->db->get("accounts", "id", ["uuid" => $userId]);
         if (!$userIdInt) {
-            return response()->json(['status' => 'error', 'alert' => 'KhÃ´ng tÃ¬m tháº¥y tÃ i khoáº£n'], 404);
+            return response()->json(['status' => 'error', 'alert' => 'Không tìm thấy tài khoản'], 404);
         }
         // Validate
         $validator = app()->validate(
@@ -675,8 +713,8 @@ class AccountController
                 'bank_account_uuid' => 'required',
             ],
             [
-                'amount.required'            => 'Vui lÃ²ng nháº­p sá»‘ tiá»n',
-                'bank_account_uuid.required' => 'Vui lÃ²ng chá»n tÃ i khoáº£n ngÃ¢n hÃ ng',
+                'amount.required'            => 'Vui lòng nhập số tiền',
+                'bank_account_uuid.required' => 'Vui lòng chọn tài khoản ngân hàng',
             ]
         );
     
@@ -686,10 +724,10 @@ class AccountController
     
         $amount = (int) request('amount');
         if ($amount < 100000) {
-            return response()->json(['status' => 'error', 'alert' => 'Sá»‘ tiá»n rÃºt tá»‘i thiá»ƒu lÃ  100.000 VNÄ'], 400);
+            return response()->json(['status' => 'error', 'alert' => 'Số tiền rút tối thiểu là 100.000 VNĐ'], 400);
         }
     
-        // Kiá»ƒm tra bank account cÃ³ thuá»™c vá» user khÃ´ng
+        // Kiểm tra bank account có thuộc về user không
         $bank = app()->db->get("bank_accounts", "*", [
             "uuid"    => request('bank_account_uuid'),
             "account" => $userId,
@@ -697,22 +735,22 @@ class AccountController
         ]);
     
         if (!$bank) {
-            return response()->json(['status' => 'error', 'alert' => 'TÃ i khoáº£n ngÃ¢n hÃ ng khÃ´ng há»£p lá»‡'], 400);
+            return response()->json(['status' => 'error', 'alert' => 'Tài khoản ngân hàng không hợp lệ'], 400);
         }
     
-        // Kiá»ƒm tra sá»‘ dÆ° wallet
+        // Kiểm tra số dư wallet
         $wallet = app()->db->get("wallets", ["id", "balance"], ["account" => $userIdInt]);
         if (!$wallet || (float)$wallet['balance'] < $amount) {
-            return response()->json(['status' => 'error', 'alert' => 'Sá»‘ dÆ° vÃ­ khÃ´ng Ä‘á»§'], 400);
+            return response()->json(['status' => 'error', 'alert' => 'Số dư ví không đủ'], 400);
         }
     
-        // Trá»« tiá»n tá»« wallet
+        // Trừ tiền từ wallet
         $deducted = upsertWallet($userIdInt, $amount, '', 'withdraw');
         if (!$deducted) {
-            return response()->json(['status' => 'error', 'alert' => 'KhÃ´ng thá»ƒ trá»« sá»‘ dÆ° vÃ­, vui lÃ²ng thá»­ láº¡i'], 500);
+            return response()->json(['status' => 'error', 'alert' => 'Không thể trừ số dư ví, vui lòng thử lại'], 500);
         }
     
-        // Insert vÃ o transactions
+        // Insert vào transactions
         app()->db->insert("transactions", [
             "uuid"         => uuid(),
             "type"         => "withdraw",
@@ -725,13 +763,13 @@ class AccountController
             "bank_account" => $bank['account_number'],
             "bank_owner"   => $bank['account_name'],
             "status"       => 0,
-            "note"         => "YÃªu cáº§u rÃºt tiá»n vá» " . $bank['bank_name'],
+            "note"         => "Yêu cầu rút tiền về " . $bank['bank_name'],
             "ip_address"   => $_SERVER['REMOTE_ADDR'] ?? null,
         ]);
     
         return response()->json([
             'status' => 'success',
-            'alert'  => 'YÃªu cáº§u rÃºt tiá»n Ä‘Ã£ Ä‘Æ°á»£c gá»­i! ChÃºng tÃ´i sáº½ xá»­ lÃ½ trong 1-2 ngÃ y lÃ m viá»‡c.',
+            'alert'  => 'Yêu cầu rút tiền đã được gửi! Chúng tôi sẽ xử lý trong 1-2 ngày làm việc.',
         ]);
     }
     
@@ -741,27 +779,28 @@ class AccountController
         $amount = (int) request('amount');
     
         if ($amount < 10000) {
-            return response()->json(['status' => 'error', 'alert' => 'Sá»‘ tiá»n tá»‘i thiá»ƒu lÃ  10.000 V'], 400);
+            return response()->json(['status' => 'error', 'alert' => 'Số tiền tối thiểu là 10.000 V'], 400);
         }
     
-        // Trá»« wallet
+        // Trừ wallet
         $deducted = upsertWallet($accountId, $amount, '', 'withdraw');
         if (!$deducted) {
-            return response()->json(['status' => 'error', 'alert' => 'Sá»‘ dÆ° vÃ­ khÃ´ng Ä‘á»§'], 400);
+            return response()->json(['status' => 'error', 'alert' => 'Số dư ví không đủ'], 400);
         }
     
-        // Cá»™ng points dÃ¹ng upsertPoints
+        // Cộng points dùng upsertPoints
         $credited = upsertPoints($accountId, $amount, '', 'deposit');
         if (!$credited) {
-            // Rollback láº¡i wallet náº¿u cá»™ng points tháº¥t báº¡i
+            // Rollback lại wallet nếu cộng points thất bại
             upsertWallet($accountId, $amount, '', 'commission');
-            return response()->json(['status' => 'error', 'alert' => 'KhÃ´ng thá»ƒ cá»™ng Ä‘iá»ƒm, vui lÃ²ng thá»­ láº¡i'], 500);
+            return response()->json(['status' => 'error', 'alert' => 'Không thể cộng điểm, vui lòng thử lại'], 500);
         }
     
-        return response()->json(['status' => 'success', 'alert' => 'Chuyá»ƒn Ä‘á»•i thÃ nh cÃ´ng!']);
+        return response()->json(['status' => 'success', 'alert' => 'Chuyển đổi thành công!']);
     }
-
-    // ===== VIP MEMBER MANAGEMENT =====
+    
+    
+    
     public function Members() {
         $user = $this->app->request->user;
         
@@ -770,7 +809,7 @@ class AccountController
             exit;
         }
 
-        $limit  = min((int) (request('limit') ?? 1), 100);
+        $limit  = min((int) (request('limit') ?? 15), 100);
         $page   = max((int) (request('page')  ?? 1), 1);
         $offset = ($page - 1) * $limit;
         $search = trim(request('search') ?? '');
@@ -928,4 +967,67 @@ class AccountController
 
         return response()->json(['status' => 'success']);
     }
+    
+    public function MemberHistory() {
+        $user = $this->app->request->user;
+        
+        if ($user->type != 2) {
+            header("Location: /app");
+            exit;
+        }
+
+        $memberUuid = request('uuid');
+        
+        // 1. Lấy thông tin học viên con (bao gồm ID số nguyên = 17)
+        $member = $this->app->db->get("accounts", ["id", "uuid", "name", "email", "ref_by", "date"], [
+            "uuid"    => $memberUuid,
+            "ref_by"  => $user->affiliate,
+            "type"    => 0,
+            "deleted" => 0
+        ]);
+
+        if (!$member) {
+            return "<div style='padding:50px; text-align:center; font-family:sans-serif;'>Lỗi: Không tìm thấy học viên hoặc bạn không có quyền xem thông tin này!</div>";
+        }
+
+        // 2. Lấy ID số nguyên của VIP đang đăng nhập (= 16)
+        $vipId = $this->app->db->get("accounts", "id", ["uuid" => $user->uuid]);
+
+        // 3. TÍNH TỔNG HOA HỒNG: 
+        // Lọc những dòng giao dịch hoa hồng có account = 16 VÀ referrer = 17
+        $totalCommission = $this->app->db->sum("transactions", "commission", [
+            "account"  => $vipId,        // ID VIP (16) nhận tiền
+            "referrer" => $member['id'], // ID Con (17) nạp tiền
+            "type"     => "commission",
+            "status"   => 1
+        ]) ?: 0;
+
+        // 4. Lấy lịch sử quét bài của học viên con
+        $scans = $this->app->db->select("originality_history", [
+            "id", "title", "type", "word_count", "points_used", "created_at",
+            "ai_score", "plag_score", "grammar_errors", "readability_score"
+        ], [
+            "account_uuid" => $memberUuid,
+            "ORDER"        => ["created_at" => "DESC"],
+            "LIMIT"        => 50
+        ]) ?: [];
+
+        // 5. Lấy lịch sử nạp tiền/trừ điểm của học viên con (account = 17)
+        $transactions = $this->app->db->select("transactions", [
+            "id", "code", "amount", "vmied", "type", "status", "created_at", "note"
+        ], [
+            "account" => $member['id'], // ID Con (17)
+            "ORDER"   => ["created_at" => "DESC"],
+            "LIMIT"   => 50
+        ]) ?: [];
+
+        return view('account/member_history', [
+            'user'            => $user,
+            'member'          => $member,
+            'totalCommission' => $totalCommission,
+            'scans'           => $scans,
+            'transactions'    => $transactions
+        ]);
+    }
+    
 }

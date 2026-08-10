@@ -114,11 +114,14 @@ class AuthController
                 'alert' => 'Tài khoản hoặc mật khẩu không đúng',
             ], 401);
         }
-        if ($account['status'] === 0 || $account['deleted'] === 1) {
-            return response()->json([
-                'status'  => 'error',
-                'alert' => 'Tài khoản này đã bị vô hiệu hóa hoặc đã bị xóa.'
-            ], 401);
+        if ($account['deleted'] === 1) {
+            return response()->json(['status' => 'error', 'alert' => 'Tài khoản này đã bị xóa.'], 401);
+        }
+        if ($account['status'] === 0) {
+            return response()->json(['status' => 'error', 'alert' => 'Tài khoản của bạn đang chờ Ban Quản Trị xét duyệt.'], 401);
+        }
+        if ($account['status'] === 2) {
+            return response()->json(['status' => 'error', 'alert' => 'Tài khoản này đã bị khóa. Vui lòng liên hệ Admin.'], 401);
         }
         if (!password_verify($password, $account['password'])) {
             return response()->json([
@@ -261,16 +264,36 @@ class AuthController
                 $avatar       = $vipDb['avatar'] ?? ''; // Gán Logo trường cho học viên
             }
         }
+        $roleId = $account['role_id'] ?? null;
+        $permissions = [];
+
+        if ($typeInt === 1) {
+            if (!empty($roleId)) {
+                // Nếu Admin có gán Role -> Lấy chuỗi JSON permissions từ bảng permissions
+                $roleData = app()->db->get("permissions", "permissions", [
+                    "id" => $roleId,
+                    "deleted" => 0
+                ]);
+                if ($roleData) {
+                    $permissions = json_decode($roleData, true) ?: [];
+                }
+            } else {
+                // Nếu role_id bằng null -> Super Admin (Cấp full tất cả quyền)
+                $permissions = ['*']; 
+            }
+        }
         
-        app()->session->set('account',[
-            "uuid" => $account['uuid'],
-            "name" => $account['name'],
-            "avatar" => $avatar,
-            "email" => $account['email'],
-            "point" => $account['point'],
-            "affiliate" => $account['affiliate'],
-            "type"         => $typeInt,      // Số: 0, 1, 2
+        app()->session->set('account', [
+            "uuid"         => $account['uuid'],
+            "name"         => $account['name'],
+            "avatar"       => $avatar,
+            "email"        => $account['email'],
+            "point"        => $account['point'] ?? 0,
+            "affiliate"    => $account['affiliate'],
+            "type"         => $typeInt,      // Số: 0 (Học viên), 1 (Admin), 2 (VIP)
             "organization" => $organization, // Tên Trường
+            "role_id"      => $roleId,       // ID Nhóm quyền
+            "permissions"  => $permissions   // Mảng quyền chi tiết
         ]);
 
         $key = $_ENV['APP_KEY'] ?? 'secret_key';
@@ -357,9 +380,21 @@ class AuthController
         $avatar = '';
         if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] == UPLOAD_ERR_OK) {
             $uploadDir = 'public/uploads/avatar/';
-            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
-            $filename = uniqid() . '-' . basename($_FILES['avatar']['name']);
-            if (move_uploaded_file($_FILES['avatar']['tmp_name'], $uploadDir . $filename)) {
+            
+            // Tìm đúng đường dẫn vật lý trên server (Lùi 2 cấp từ App/Controllers ra thư mục gốc)
+            $rootPath = dirname(__DIR__, 2) . '/';
+            $fullDir  = $rootPath . $uploadDir;
+
+            if (!is_dir($fullDir)) {
+                mkdir($fullDir, 0755, true);
+            }
+
+            // Lấy tên file gốc thay thế các ký tự đặc biệt/khoảng trắng để tránh lỗi URL 404
+            $safeName = preg_replace('/[^a-zA-Z0-9.\-_]/', '', basename($_FILES['avatar']['name']));
+            $filename = uniqid() . '-' . $safeName;
+            $destination = $fullDir . $filename;
+            
+            if (move_uploaded_file($_FILES['avatar']['tmp_name'], $destination)) {
                 $avatar = '/uploads/avatar/' . $filename;
             }
         }

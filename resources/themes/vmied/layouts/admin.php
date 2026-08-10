@@ -117,6 +117,7 @@
                     
                     <?php if (isset($user) && $user->type == 1): ?>
                         <!-- Menu của ADMIN -->
+                        <p class="text-uppercase text-secondary fw-bold small mb-1 ps-2 mt-2">Khu vực Quản lý</p>
                         <a href="/admin/vips" class="nav-link-custom" data-bs-dismiss="offcanvas">
                             <i data-lucide="building"></i> Đơn vị Liên kết
                         </a>
@@ -126,8 +127,21 @@
                         <a href="/admin/statistics" class="nav-link-custom" data-bs-dismiss="offcanvas">
                             <i data-lucide="bar-chart-2"></i> Thống kê
                         </a>
+                        <a href="/admin/user-finance?uuid=<?= $user->uuid ?>" class="nav-link-custom" data-bs-dismiss="offcanvas">
+                            <i data-lucide="wallet"></i> Tài chính & Hoa hồng
+                        </a>
+
+                        <p class="text-uppercase text-secondary fw-bold small mb-1 ps-2 mt-3">Quản trị Hệ thống</p>
+                        <a href="/admin/admins" class="nav-link-custom" data-bs-dismiss="offcanvas">
+                             <i data-lucide="shield"></i> Tài khoản Quản trị
+                        </a>
+                        <a href="/admin/roles" class="nav-link-custom" data-bs-dismiss="offcanvas">
+                             <i data-lucide="lock"></i> Nhóm quyền
+                        </a>
+                        
                     <?php elseif (isset($user) && $user->type == 2): ?>
                         <!-- Menu của VIP -->
+                        <p class="text-uppercase text-secondary fw-bold small mb-1 ps-2 mt-2">Khu vực Quản lý</p>
                         <a href="/admin/members" class="nav-link-custom" data-bs-dismiss="offcanvas">
                             <i data-lucide="users"></i> Học viên / Giảng viên
                         </a>
@@ -187,10 +201,10 @@
         <!-- Left Sidebar (Desktop only) -->
         <div class="d-flex flex-column bg-white shadow-sm h-100 position-fixed start-0 pb-4 admin-sidebar">
             <div class="p-3 d-flex flex-column gap-2">
-                <p class="text-uppercase text-secondary fw-bold small mb-2 ps-2">Khu vực Quản lý</p>
                 
                 <?php if (isset($user) && $user->type == 1): ?>
                     <!-- Menu của ADMIN -->
+                    <p class="text-uppercase text-secondary fw-bold small mb-2 ps-2">Khu vực Quản lý</p>
                     <a href="/admin/vips" class="nav-link-custom admin-nav-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/vips') === 0 ? 'bg-primary text-white' : 'text-dark' ?> rounded-3 p-2 text-decoration-none d-flex align-items-center gap-3">
                         <i data-lucide="building" style="width: 20px;"></i> 
                         <span class="fw-medium">Đơn vị Liên kết</span>
@@ -205,9 +219,26 @@
                         <i data-lucide="bar-chart-2" style="width: 20px;"></i> 
                         <span class="fw-medium">Thống kê</span>
                     </a>
+                    <!-- NÚT TÀI CHÍNH DÀNH CHO ADMIN DESKTOP -->
+                    <a href="/admin/user-finance?uuid=<?= $user->uuid ?>" class="nav-link-custom admin-nav-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/user-finance') === 0 ? 'bg-primary text-white' : 'text-dark' ?> rounded-3 p-2 text-decoration-none d-flex align-items-center gap-3">
+                        <i data-lucide="wallet" style="width: 20px;"></i> 
+                        <span class="fw-medium">Tài chính & Hoa hồng</span>
+                    </a>
+
+                    <p class="text-uppercase text-secondary fw-bold small mb-2 ps-2 mt-4">Quản trị Hệ thống</p>
+                    <a href="/admin/admins" class="nav-link-custom admin-nav-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/admins') === 0 ? 'bg-primary text-white' : 'text-dark' ?> rounded-3 p-2 text-decoration-none d-flex align-items-center gap-3">
+                        <i data-lucide="shield" style="width: 20px;"></i> 
+                        <span class="fw-medium">Tài khoản Quản trị</span>
+                    </a>
+                    
+                    <a href="/admin/roles" class="nav-link-custom admin-nav-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/roles') === 0 ? 'bg-primary text-white' : 'text-dark' ?> rounded-3 p-2 text-decoration-none d-flex align-items-center gap-3">
+                        <i data-lucide="lock" style="width: 20px;"></i> 
+                        <span class="fw-medium">Nhóm quyền</span>
+                    </a>
 
                 <?php elseif (isset($user) && $user->type == 2): ?>
                     <!-- Menu của VIP -->
+                    <p class="text-uppercase text-secondary fw-bold small mb-2 ps-2">Khu vực Quản lý</p>
                     <a href="/admin/members" class="nav-link-custom admin-nav-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/members') === 0 ? 'bg-primary text-white' : 'text-dark' ?> rounded-3 p-2 text-decoration-none d-flex align-items-center gap-3">
                         <i data-lucide="users" style="width: 20px;"></i> 
                         <span class="fw-medium">Học viên / Giảng viên</span>

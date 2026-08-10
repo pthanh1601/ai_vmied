@@ -377,8 +377,20 @@ class MockOriginalityController
  
         $actualCost  = $cost;
         $tokensUsed  = (int) ($results['tokensUsed'] ?? 0);
-        $capitalCost = $this->calcCostFromTokens($tokensUsed);
-        $profit      = $actualCost - $capitalCost;
+        // 1. Tiền Token GPT
+        $gptCostVnd = $this->calcCostFromTokens($tokensUsed);
+
+        // 2. Tiền Copyscape AI + Plagiarism (Tỷ giá tạm tính: 25.400đ / 1 USD)
+        $exchangeRate = 25400; 
+        $copyscapeAiUsd   = (float) ($results['ai']['cost_usd'] ?? 0);
+        $copyscapePlagUsd = (float) ($results['plagiarism']['cost_usd'] ?? 0);
+        
+        $copyscapeCostVnd = (int) round(($copyscapeAiUsd + $copyscapePlagUsd) * $exchangeRate);
+
+        // 3. TỔNG CHI PHÍ THỰC TẾ VỐN API
+        $capitalCost = $copyscapeCostVnd;
+
+        $profit = $actualCost - $capitalCost;
  
         error_log(sprintf(
             '[SAAS-FINANCE] uuid=%s words=%d tokens=%d sell=%dđ cost=%dđ profit=%dđ',
@@ -908,13 +920,6 @@ PROMPT;
             if ($pct >= 70) $factsTrue++; else $factsErrors++;
         }
     
-        // Lấy file blob nếu có
-        $fileBlob = null;
-        if (!empty($fileUrl)) {
-            $diskPath = $this->resolveUploadedFilePath($fileUrl);
-            if ($diskPath) $fileBlob = file_get_contents($diskPath);
-        }
-    
         // AI score từ confidence — chỉ tính khi có bật check AI
         $aiScore = null;
         if ($checkAi && isset($results['ai']['confidence']['AI'])) {
@@ -931,7 +936,7 @@ PROMPT;
             'content'             => $content,
             'scan_url'            => $scanUrl,
             'file_url'            => $fileUrl,
-            'file_blob'           => $fileBlob,
+            // 'file_blob'        => BỎ HOÀN TOÀN TRƯỜNG NÀY ĐỂ TRÁNH TRÀN RAM DBN
             'ai'                  => json_encode($results['ai']               ?? null, JSON_UNESCAPED_UNICODE),
             'plagiarism'          => json_encode($results['plagiarism']       ?? null, JSON_UNESCAPED_UNICODE),
             'grammar'             => json_encode($results['grammarSpelling']  ?? null, JSON_UNESCAPED_UNICODE),
@@ -946,7 +951,6 @@ PROMPT;
             'points_used'         => $results['pointsUsed']              ?? 0,
             'tokens_used'         => $results['tokensUsed']              ?? 0,
     
-            // ── FIX: NULL khi check không bật, thay vì luôn ép 0 ──
             'ai_score'            => $aiScore,
             'ai_model'            => $checkAi ? ($results['ai']['aiModel'] ?? null) : null,
             'plag_score'          => $checkPlagiarism ? ($results['plagiarism']['score'] ?? 0) : null,
@@ -963,16 +967,8 @@ PROMPT;
             'capitalCost'         => $capitalCost,
         ];
     
-        try {
-            app()->db->insert('originality_history', $insertData);
-        } catch (\PDOException $e) {
-            if (str_contains(strtolower($e->getMessage()), 'max_allowed_packet')) {
-                $insertData['file_blob'] = null;
-                app()->db->insert('originality_history', $insertData);
-            } else {
-                throw $e;
-            }
-        }
+        // Thêm trực tiếp không cần bắt catch max_allowed_packet nữa
+        app()->db->insert('originality_history', $insertData);
     }
 
     // ============================================================
@@ -1234,6 +1230,7 @@ PROMPT;
         $allResults  = [];
         $totalWords  = 0;
         $weightedSum = 0.0; // để tính điểm trung bình có trọng số
+        $totalCostUsd = 0.0;
     
         foreach ($chunks as $chunkIndex => $chunk) {
             $chunkWords = $this->countWords($chunk);
@@ -1264,6 +1261,9 @@ PROMPT;
             }
     
             $data = json_decode($raw, true);
+            if (isset($data['cost'])) {
+                $totalCostUsd += (float) $data['cost'];
+            }
             if (json_last_error() !== JSON_ERROR_NONE || !is_array($data)) {
                 $log("Chunk {$chunkIndex} response không hợp lệ HTTP={$code}");
                 continue;
@@ -1345,7 +1345,7 @@ PROMPT;
             ($b['results'][0]['scores'][0]['score'] ?? 0) <=> ($a['results'][0]['scores'][0]['score'] ?? 0)
         );
     
-        return ['score' => $finalScore, 'results' => $deduped];
+        return ['score' => $finalScore, 'results' => $deduped, 'cost_usd' => $totalCostUsd,];
     }
 
     // Thêm method này vào class
@@ -1646,6 +1646,7 @@ PROMPT;
         $allBlocks   = [];
         $totalWords  = 0;
         $weightedSum = 0.0;
+        $totalCostUsd = 0.0;
     
         foreach ($chunks as $chunkIndex => $chunk) {
             $chunkWords = $this->countWords($chunk);
@@ -1669,6 +1670,9 @@ PROMPT;
             if ($err) { $log("Chunk {$chunkIndex} cURL error: {$err}"); continue; }
     
             $data = json_decode($raw, true);
+            if (isset($data['cost'])) {
+                $totalCostUsd += (float) $data['cost'];
+            }
             if (json_last_error() !== JSON_ERROR_NONE || !is_array($data)) {
                 $log("Chunk {$chunkIndex} response không hợp lệ HTTP={$code}");
                 continue;
@@ -1716,6 +1720,7 @@ PROMPT;
             'classification' => ['AI' => $globalScore >= 0.5 ? 1 : 0, 'Original' => $globalScore >= 0.5 ? 0 : 1],
             'confidence'     => ['AI' => $globalScore, 'Original' => round(1 - $globalScore, 4)],
             'blocks'         => $allBlocks,
+            'cost_usd'       => $totalCostUsd,
         ];
     }
     

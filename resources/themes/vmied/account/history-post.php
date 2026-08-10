@@ -655,7 +655,6 @@ if (!empty($blocks)) {
                         <?= $__('confident_text_1') ?> <?= $authorLabelFull ?><?= $__('confident_text_2') ?> <?= $conf ?>% <?= $__('confident_text_3') ?> <?= $authorLabel ?>.
                     </p>
 
-                    <!-- Removed Mô hình and Ngày -->
                 </div>
             </div>
 
