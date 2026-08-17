@@ -34,7 +34,7 @@ class AccountController
         
         // $account->type = $account->type == 0 ? 'Thành Viên' : 'Quản trị';
         $account->type_id = $account->type;
-        $account->type = $account->type == 0 ? 'Thành Viên' : 'Quản trị';
+        $account->type = $account->type == 1 ? 'Quản trị' : ($account->type == 2 ? 'VIP' : 'Thành Viên');
         if (app()->request->isHtmx()) {
             return view('account/account', [
                 'user' => $account,
@@ -66,7 +66,7 @@ class AccountController
         ]);
         
         $account->type_id = $account->type;
-        $account->type = $account->type==0 ? 'Thành Viên' : 'Quản trị';
+        $account->type = $account->type == 1 ? 'Quản trị' : ($account->type == 2 ? 'VIP' : 'Thành Viên');
 
         // 1. CHUẨN HÓA LOGIC: THÁNG NÀY NHẬN ĐƯỢC BAO NHIÊU ĐIỂM (V)
         $monthlyIncome = app()->db->sum("points_historys", "point", [

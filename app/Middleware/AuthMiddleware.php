@@ -78,7 +78,7 @@ class AuthMiddleware
                 "point"  => $account['point'] ?? 0,
                 "affiliate" => $account['affiliate'] ?? null,
                 "ref_by" => $account['ref_by'] ?? null,
-                "type"   => $account['type'] == 0 ? 'Thành viên' : 'Quản trị',
+                "type"   => $account['type'] == 1 ? 'Quản trị' : ($account['type'] == 2 ? 'VIP' : 'Thành viên'),
             ];
             
             $app->session->set('account', $userData);
