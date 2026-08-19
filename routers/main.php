@@ -22,3 +22,16 @@
     $app->router('/register', 'POST', ['App\Controllers\AuthController', 'Register']);
     $app->router('/logout', 'GET', ['App\Controllers\AuthController', 'Logout']);
     $app->router('/register-vip', 'POST', ['App\Controllers\AuthController', 'RegisterVip']);
+
+
+
+    // Pages
+    $app->router('/huong-dan-su-dung', 'GET', function () use ($app) {
+        return view('guide', ['user' => $app->session->get('account')]);
+    });
+    $app->router('/chinh-sach-bao-mat', 'GET', function () use ($app) {
+        return view('privacy', ['user' => $app->session->get('account')]);
+    });
+    $app->router('/dieu-khoan-dich-vu', 'GET', function () use ($app) {
+        return view('terms', ['user' => $app->session->get('account')]);
+    });

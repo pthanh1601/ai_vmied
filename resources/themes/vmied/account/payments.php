@@ -1,7 +1,21 @@
 <?php $this->extend('layouts/app') ?>
 
 <?php $this->section('content') ?>
-<main class="container py-5 mt-5" data-page-script="/js/payments.js">
+<main class="container py-5 mt-5">
+<style>
+.method-active, .amount-active {
+    border-color: #0d6efd !important;
+    background-color: #e7f1ff !important;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25) !important;
+    transition: all 0.2s ease-in-out;
+}
+.amount-active {
+    color: #0d6efd !important;
+}
+.btn-pkg {
+    transition: all 0.2s ease-in-out;
+}
+</style>
         
         <div class="row g-5">
             <!-- LEFT COLUMN: Payment Configuration -->
@@ -24,38 +38,38 @@
                     <div class="row g-3 mb-4">
                         <!-- Pre-defined Amounts -->
                         <div class="col-6 col-md-4">
-                            <button class="btn btn-check-custom w-100 py-3 rounded-4 fw-bold border bg-white shadow-sm h-100" data-value="20000">
+                            <button onclick="setAmount(this.dataset.value, this)" class="btn btn-pkg w-100 py-3 rounded-4 fw-bold border bg-white shadow-sm h-100" data-value="20000">
                                 <span class="d-block fs-5 mb-1">20k</span>
                                 <span class="d-block small text-secondary fw-normal">VNĐ</span>
                             </button>
                         </div>
                         <div class="col-6 col-md-4">
-                            <button class="btn btn-check-custom w-100 py-3 rounded-4 fw-bold border bg-white shadow-sm h-100" data-value="50000">
+                            <button onclick="setAmount(this.dataset.value, this)" class="btn btn-pkg w-100 py-3 rounded-4 fw-bold border bg-white shadow-sm h-100" data-value="50000">
                                 <span class="d-block fs-5 mb-1">50k</span>
                                 <span class="d-block small text-secondary fw-normal">VNĐ</span>
                             </button>
                         </div>
                         <div class="col-6 col-md-4">
-                            <button class="btn btn-check-custom w-100 py-3 rounded-4 fw-bold border bg-white shadow-sm h-100" data-value="100000">
+                            <button onclick="setAmount(this.dataset.value, this)" class="btn btn-pkg w-100 py-3 rounded-4 fw-bold border bg-white shadow-sm h-100" data-value="100000">
                                 <span class="d-block fs-5 mb-1">100k</span>
                                 <span class="d-block small text-secondary fw-normal">VNĐ</span>
                             </button>
                         </div>
                         <div class="col-6 col-md-4">
-                            <button class="btn btn-check-custom w-100 py-3 rounded-4 fw-bold border bg-white shadow-sm h-100" data-value="200000">
+                            <button onclick="setAmount(this.dataset.value, this)" class="btn btn-pkg w-100 py-3 rounded-4 fw-bold border bg-white shadow-sm h-100" data-value="200000">
                                 <span class="d-block fs-5 mb-1">200k</span>
                                 <span class="d-block small text-secondary fw-normal">VNĐ</span>
                             </button>
                         </div>
                         <div class="col-6 col-md-4">
-                            <button class="btn btn-check-custom w-100 py-3 rounded-4 fw-bold border bg-white shadow-sm h-100" data-value="500000">
+                            <button onclick="setAmount(this.dataset.value, this)" class="btn btn-pkg w-100 py-3 rounded-4 fw-bold border bg-white shadow-sm h-100" data-value="500000">
                                 <span class="d-block fs-5 mb-1">500k</span>
                                 <span class="d-block small text-secondary fw-normal">VNĐ</span>
                             </button>
                         </div>
                         <div class="col-6 col-md-4">
-                            <button class="btn btn-check-custom w-100 py-3 rounded-4 fw-bold border bg-white shadow-sm h-100" data-value="1000000">
-                                <span class="d-block fs-5 mb-1 text-primary">1 Triệu</span>
+                            <button onclick="setAmount(this.dataset.value, this)" class="btn btn-pkg w-100 py-3 rounded-4 fw-bold border bg-white shadow-sm h-100" data-value="1000000">
+                                <span class="d-block fs-5 mb-1">1 Triệu</span>
                                 <span class="d-block small text-secondary fw-normal">VNĐ</span>
                             </button>
                         </div>
@@ -64,7 +78,7 @@
                         <div class="col-12 mt-2">
                             <div class="input-group-custom d-flex align-items-center">
                                 <div class="px-3 text-secondary"><i data-lucide="pencil" width="18"></i></div>
-                                <input type="number" id="custom-amount" class="form-control border-0 shadow-none fw-bold fs-5 ps-0 text-dark" placeholder="Nhập số tiền khác...">
+                                <input type="number" id="custom-amount" oninput="setAmount(parseInt(this.value) || 0, this)" class="form-control border-0 shadow-none fw-bold fs-5 ps-0 text-dark" placeholder="Nhập số tiền khác...">
                                 <span class="fw-bold text-secondary pe-3">VNĐ</span>
                             </div>
                         </div>
@@ -98,34 +112,55 @@
 
                     <div class="glass-card rounded-5 p-4 p-md-5">
                         <div class="row g-3 mb-4">
-                            <div class="col-md-4">
-                                <button onclick="selectMethod('qr', this)" class="btn btn-check-custom active w-100 p-4 rounded-4 border bg-white d-flex flex-column align-items-center gap-3 h-100">
+                            <div class="col-md-3">
+                                <button onclick="selectMethod('vnpay', this)" class="btn btn-method active w-100 p-4 rounded-4 border bg-white d-flex flex-column align-items-center gap-3 h-100">
+                                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
+                                        <i data-lucide="credit-card" width="24" class="text-primary"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark">Cổng VNPAY</span>
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button onclick="selectMethod('qr', this)" class="btn btn-method w-100 p-4 rounded-4 border bg-white d-flex flex-column align-items-center gap-3 h-100">
                                     <div class="bg-light p-3 rounded-circle">
                                         <i data-lucide="qr-code" width="24" class="text-dark"></i>
                                     </div>
                                     <span class="fw-bold text-dark">Chuyển khoản QR</span>
                                 </button>
                             </div>
-                            <div class="col-md-4">
-                                <button onclick="selectMethod('momo', this)" class="btn btn-check-custom w-100 p-4 rounded-4 border bg-white d-flex flex-column align-items-center gap-3 h-100">
+                            <div class="col-md-3">
+                                <button onclick="selectMethod('momo', this)" class="btn btn-method w-100 p-4 rounded-4 border bg-white d-flex flex-column align-items-center gap-3 h-100">
                                     <div class="bg-pink-50 p-3 rounded-circle">
                                         <i data-lucide="smartphone" width="24" class="text-danger"></i>
                                     </div>
                                     <span class="fw-bold text-dark">Ví Momo</span>
                                 </button>
                             </div>
-                            <div class="col-md-4">
-                                <button onclick="selectMethod('card', this)" class="btn btn-check-custom w-100 p-4 rounded-4 border bg-white d-flex flex-column align-items-center gap-3 h-100">
+                            <div class="col-md-3">
+                                <button onclick="selectMethod('card', this)" class="btn btn-method w-100 p-4 rounded-4 border bg-white d-flex flex-column align-items-center gap-3 h-100">
                                     <div class="bg-blue-50 p-3 rounded-circle">
-                                        <i data-lucide="credit-card" width="24" class="text-primary"></i>
+                                        <i data-lucide="globe" width="24" class="text-primary"></i>
                                     </div>
                                     <span class="fw-bold text-dark">Thẻ quốc tế</span>
                                 </button>
                             </div>
                         </div>
 
+                        <!-- Detail: VNPAY -->
+                        <div id="detail-vnpay" class="payment-detail bg-white rounded-4 p-4 border border-light-subtle shadow-sm">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
+                                    <i data-lucide="shield-check" width="24" class="text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-bold text-dark">Thanh toán an toàn qua cổng VNPAY</h6>
+                                    <p class="mb-0 text-secondary small">Hỗ trợ ATM nội địa, thẻ quốc tế Visa/MasterCard và quét mã VNPAY-QR.</p>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Detail: QR Code -->
-                        <div id="detail-qr" class="payment-detail bg-white rounded-4 p-4 border border-light-subtle shadow-sm">
+                        <div id="detail-qr" class="payment-detail d-none bg-white rounded-4 p-4 border border-light-subtle shadow-sm">
                             <div class="row g-4 align-items-center">
                                 <div class="col-sm-auto text-center mx-auto mx-sm-0">
                                     <div class="bg-white p-2 rounded-4 shadow border d-inline-block position-relative overflow-hidden">
@@ -347,4 +382,5 @@
         </div>
 
 </main>
+<script src="/js/payments.js?v=12" data-page-script></script>
 <?php $this->endSection() ?>

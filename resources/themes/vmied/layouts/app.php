@@ -81,7 +81,7 @@
                     <button class="btn border-0 d-flex align-items-center gap-3 cursor-pointer p-0" hx-get="/app/account" hx-swap="none">
                         <div class="text-end d-none d-lg-block line-height-sm">
                             <p class="mb-0 fw-bold text-dark small"><?=$user->name?></p>
-                            <p class="mb-0 fw-bold text-secondary text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;"><?=$user->type?></p>
+                    <p class="mb-0 fw-bold text-secondary text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;"><?= match((string)($user->type ?? '0')) { '1', 'Quản trị' => 'Quản trị', '2', 'VIP' => 'VIP', default => 'Thành viên' } ?></p>
                         </div>
                         <div class="position-relative">
                             <img src="https://ui-avatars.com/api/?name=<?=$user->name?>&background=0ea5e9&color=fff" alt="User" class="rounded-circle border border-2 border-white shadow-sm" style="width: 40px; height: 40px;">

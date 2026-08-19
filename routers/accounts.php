@@ -13,6 +13,8 @@
 
         $app->router('/payments', 'GET', ['App\Controllers\PaymentController', 'Payments']);
         
+        $app->router('/payments/vnpay-return', 'GET', ['App\Controllers\PaymentController', 'VnpayReturn']);
+        
         $app->router('/historys', 'GET', ['App\Controllers\AccountController', 'History']);
 
         $app->router('/account/change-infomation', 'POST', ['App\Controllers\AccountController', 'UpdateInformation']);

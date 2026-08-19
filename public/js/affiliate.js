@@ -18,23 +18,8 @@ window.onBankAdded = function (event) {
     try {
         const res = JSON.parse(xhr.responseText);
         if (res.status === 'success') {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Thành công',
-                    text: res.alert || 'Thêm tài khoản thành công',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-            } else {
-                alert(res.alert || 'Thêm tài khoản thành công');
-            }
             const select = document.querySelector('select[name="bank_account_uuid"]');
             if (select && res.data) {
-                const emptyOption = select.querySelector('option[disabled]');
-                if (emptyOption && emptyOption.value === "") {
-                    emptyOption.remove();
-                }
                 const opt = document.createElement('option');
                 opt.value = res.data.uuid;
                 opt.textContent = `${res.data.bank_name} - **** ${res.data.account_number.slice(-4)} (${res.data.account_name})`;
@@ -43,38 +28,9 @@ window.onBankAdded = function (event) {
             }
             const form = document.getElementById('form-bank-account');
             if (form) form.reset();
-            
-            const modalEl = document.getElementById('modalAddBank');
-            if (modalEl && typeof bootstrap !== 'undefined') {
-                const modalInstance = bootstrap.Modal.getInstance(modalEl);
-                if (modalInstance) {
-                    modalInstance.hide();
-                } else {
-                    window.toggleAddBank();
-                }
-            } else {
-                window.toggleAddBank();
-            }
-        } else {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Lỗi',
-                    text: res.alert || 'Có lỗi xảy ra'
-                });
-            } else {
-                alert(res.alert || 'Có lỗi xảy ra');
-            }
+            window.toggleAddBank();
         }
-    } catch (e) {
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể xử lý yêu cầu'
-            });
-        }
-    }
+    } catch (e) {}
 };
 
 // Handler payout — định nghĩa 1 lần, tái sử dụng để có thể remove được
@@ -102,7 +58,7 @@ function _payoutAfterRequest(e) {
         }
 
         if (typeof lucide !== 'undefined') lucide.createIcons();
-    } catch (e) { }
+    } catch (e) {}
 }
 
 window.__pageInit__ = function () {

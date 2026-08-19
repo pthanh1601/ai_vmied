@@ -675,9 +675,9 @@
                 <div class="col-lg-3">
                     <h6 class="fw-bold mb-4 text-white">Hỗ trợ</h6>
                     <ul class="list-unstyled text-secondary small d-grid gap-2">
-                        <li><a href="#" class="text-decoration-none text-secondary hover-text-white transition"><i data-lucide="chevron-right" width="12"></i> Hướng dẫn sử dụng</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary hover-text-white transition"><i data-lucide="chevron-right" width="12"></i> Chính sách bảo mật</a></li>
-                        <li><a href="#" class="text-decoration-none text-secondary hover-text-white transition"><i data-lucide="chevron-right" width="12"></i> Điều khoản dịch vụ</a></li>
+                        <li><a href="/huong-dan-su-dung" class="text-decoration-none text-secondary hover-text-white transition"><i data-lucide="chevron-right" width="12"></i> Hướng dẫn sử dụng</a></li>
+                        <li><a href="/chinh-sach-bao-mat" class="text-decoration-none text-secondary hover-text-white transition"><i data-lucide="chevron-right" width="12"></i> Chính sách bảo mật</a></li>
+                        <li><a href="/dieu-khoan-dich-vu" class="text-decoration-none text-secondary hover-text-white transition"><i data-lucide="chevron-right" width="12"></i> Điều khoản dịch vụ</a></li>
                     </ul>
                 </div>
             </div>

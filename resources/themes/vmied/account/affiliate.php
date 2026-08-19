@@ -228,7 +228,7 @@
                             <label class="form-label text-secondary small fw-bold text-uppercase mb-0">Ngân hàng</label>
                             <button type="button"
                                     class="btn btn-link btn-sm text-primary p-0 text-decoration-none fw-bold"
-                                    onclick="toggleAddBank()">
+                                    data-bs-toggle="modal" data-bs-target="#modalAddBank">
                                 <i data-lucide="plus-circle" width="14"></i> Thêm tài khoản
                             </button>
                         </div>
@@ -258,73 +258,81 @@
                     </button>
                 </form>
         
-                <!-- FORM THÊM TÀI KHOẢN (ẩn mặc định) -->
-                <div id="form-add-bank" class="mt-4 pt-4 border-top" style="display:none;">
-                    <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                        <i data-lucide="building-2" width="16"></i>
-                        Thêm tài khoản ngân hàng
-                    </h6>
-        
-                    <form id="form-bank-account"
-                          hx-post="/app/affiliate/bank/add"
-                          hx-target="#bank-alert"
-                          hx-swap="innerHTML"
-                          hx-on::after-request="onBankAdded(event)">
-        
-                        <div id="bank-alert" class="mb-3"></div>
-        
-                        <div class="mb-3">
-                            <label class="form-label text-secondary small fw-bold text-uppercase">Ngân hàng</label>
-                            <select name="bank_code"
-                                    class="form-select bg-light border-0 rounded-4 text-dark"
-                                    onchange="updateBankName(this)" required>
-                                <option value="" disabled selected>-- Chọn ngân hàng --</option>
-                                <option value="VCB"  data-name="Vietcombank">Vietcombank (VCB)</option>
-                                <option value="MBB"  data-name="MB Bank">MB Bank (MBB)</option>
-                                <option value="TCB"  data-name="Techcombank">Techcombank (TCB)</option>
-                                <option value="ACB"  data-name="ACB">ACB</option>
-                                <option value="BIDV" data-name="BIDV">BIDV</option>
-                                <option value="VTB"  data-name="VietinBank">VietinBank (VTB)</option>
-                                <option value="TPB"  data-name="TPBank">TPBank</option>
-                                <option value="VPB"  data-name="VPBank">VPBank</option>
-                            </select>
-                            <input type="hidden" name="bank_name" id="bank_name_hidden">
+                <!-- MODAL THÊM TÀI KHOẢN -->
+                <div class="modal fade" id="modalAddBank" tabindex="-1" aria-labelledby="modalAddBankLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content rounded-5 border-0 shadow">
+                            <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="modalAddBankLabel">
+                                    <i data-lucide="building-2" width="20"></i>
+                                    Thêm tài khoản ngân hàng
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <form id="form-bank-account"
+                                      hx-post="/app/affiliate/bank/add"
+                                      hx-target="#bank-alert"
+                                      hx-swap="none"
+                                      hx-on::after-request="onBankAdded(event)">
+                    
+                                    <div id="bank-alert" class="mb-3"></div>
+                    
+                                    <div class="mb-3">
+                                        <label class="form-label text-secondary small fw-bold text-uppercase">Ngân hàng</label>
+                                        <select name="bank_code"
+                                                class="form-select bg-light border-0 rounded-4 text-dark"
+                                                onchange="updateBankName(this)" required>
+                                            <option value="" disabled selected>-- Chọn ngân hàng --</option>
+                                            <option value="VCB"  data-name="Vietcombank">Vietcombank (VCB)</option>
+                                            <option value="MBB"  data-name="MB Bank">MB Bank (MBB)</option>
+                                            <option value="TCB"  data-name="Techcombank">Techcombank (TCB)</option>
+                                            <option value="ACB"  data-name="ACB">ACB</option>
+                                            <option value="BIDV" data-name="BIDV">BIDV</option>
+                                            <option value="VTB"  data-name="VietinBank">VietinBank (VTB)</option>
+                                            <option value="TPB"  data-name="TPBank">TPBank</option>
+                                            <option value="VPB"  data-name="VPBank">VPBank</option>
+                                        </select>
+                                        <input type="hidden" name="bank_name" id="bank_name_hidden">
+                                    </div>
+                    
+                                    <div class="mb-3">
+                                        <label class="form-label text-secondary small fw-bold text-uppercase">Số tài khoản</label>
+                                        <input type="text" name="account_number"
+                                               class="form-control bg-light border-0 rounded-4"
+                                               placeholder="VD: 1234567890" required>
+                                    </div>
+                    
+                                    <div class="mb-3">
+                                        <label class="form-label text-secondary small fw-bold text-uppercase">Tên chủ tài khoản</label>
+                                        <input type="text" name="account_name"
+                                               class="form-control bg-light border-0 rounded-4 text-uppercase"
+                                               placeholder="VD: NGUYEN VAN A" required>
+                                    </div>
+                    
+                                    <div class="mb-4 form-check">
+                                        <input type="checkbox" name="is_default" value="1"
+                                               class="form-check-input" id="cb-default">
+                                        <label class="form-check-label text-secondary small" for="cb-default">
+                                            Đặt làm tài khoản mặc định
+                                        </label>
+                                    </div>
+                    
+                                    <div class="d-flex gap-2">
+                                        <button type="submit"
+                                                class="btn btn-primary fw-bold rounded-4 flex-grow-1">
+                                            Lưu tài khoản
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-light fw-bold rounded-4 px-4"
+                                                data-bs-dismiss="modal">
+                                            Hủy
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-        
-                        <div class="mb-3">
-                            <label class="form-label text-secondary small fw-bold text-uppercase">Số tài khoản</label>
-                            <input type="text" name="account_number"
-                                   class="form-control bg-light border-0 rounded-4"
-                                   placeholder="VD: 1234567890" required>
-                        </div>
-        
-                        <div class="mb-3">
-                            <label class="form-label text-secondary small fw-bold text-uppercase">Tên chủ tài khoản</label>
-                            <input type="text" name="account_name"
-                                   class="form-control bg-light border-0 rounded-4 text-uppercase"
-                                   placeholder="VD: NGUYEN VAN A" required>
-                        </div>
-        
-                        <div class="mb-4 form-check">
-                            <input type="checkbox" name="is_default" value="1"
-                                   class="form-check-input" id="cb-default">
-                            <label class="form-check-label text-secondary small" for="cb-default">
-                                Đặt làm tài khoản mặc định
-                            </label>
-                        </div>
-        
-                        <div class="d-flex gap-2">
-                            <button type="submit"
-                                    class="btn btn-primary fw-bold rounded-4 flex-grow-1">
-                                Lưu tài khoản
-                            </button>
-                            <button type="button"
-                                    class="btn btn-light fw-bold rounded-4 px-4"
-                                    onclick="toggleAddBank()">
-                                Hủy
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>

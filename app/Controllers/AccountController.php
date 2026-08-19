@@ -34,7 +34,8 @@ class AccountController
         
         // $account->type = $account->type == 0 ? 'Thành Viên' : 'Quản trị';
         $account->type_id = $account->type;
-        $account->type = $account->type == 1 ? 'Quản trị' : ($account->type == 2 ? 'VIP' : 'Thành Viên');
+        // $account->type = $account->type == 0 ? 'Thành Viên' : 'Quản trị';
+         $account->type = $account->type == 1 ? 'Quản trị' : ($account->type == 2 ? 'VIP' : 'Thành Viên');
         if (app()->request->isHtmx()) {
             return view('account/account', [
                 'user' => $account,
@@ -66,7 +67,8 @@ class AccountController
         ]);
         
         $account->type_id = $account->type;
-        $account->type = $account->type == 1 ? 'Quản trị' : ($account->type == 2 ? 'VIP' : 'Thành Viên');
+        // $account->type = $account->type==0 ? 'Thành Viên' : 'Quản trị';
+         $account->type = $account->type == 1 ? 'Quản trị' : ($account->type == 2 ? 'VIP' : 'Thành Viên');
 
         // 1. CHUẨN HÓA LOGIC: THÁNG NÀY NHẬN ĐƯỢC BAO NHIÊU ĐIỂM (V)
         $monthlyIncome = app()->db->sum("points_historys", "point", [
@@ -482,11 +484,12 @@ class AccountController
             }
         }
     
+        $accountId = app()->db->get("accounts", "id", ["uuid" => $user->uuid]);
         // ── Lịch sử giao dịch (Tối ưu: Chỉ lấy cột cần, LIMIT 50) ────────────────────────────
         $rawTransactions = app()->db->select("transactions", [
-            "id", "type", "vmied", "amount", "created_at" 
+        "id", "code", "type", "vmied", "amount", "commission", "status", "created_at" 
         ], [
-            "account" => $user->uuid,
+            "account" => $accountId,
             "ORDER"   => ["created_at" => "DESC"],
             "LIMIT"   => 50 // Giới hạn giao dịch hiển thị
         ]) ?: [];
@@ -498,7 +501,11 @@ class AccountController
                 'commission' => 'Hoa hồng',
                 default      => 'Khác'
             };
-            $t['display_amount'] = $t['vmied'] ?? $t['amount'] ?? 0;
+            if (($t['type'] ?? '') === 'commission') {
+                $t['display_amount'] = $t['commission'] ?? 0;
+            } else {
+                $t['display_amount'] = $t['vmied'] ?? $t['amount'] ?? 0;
+            }
             return $t;
         }, $rawTransactions);
     
@@ -611,7 +618,7 @@ class AccountController
         ]);
     
         $payouts = app()->db->select("transactions", "*", [
-            "account" => $user->uuid,
+            "account" => $accountId,
             "type"    => "withdraw",
             "ORDER"   => ["created_at" => "DESC"]
         ]);
@@ -625,14 +632,14 @@ class AccountController
         ]) ?: 0);
     
         $totalEarned = (float)(app()->db->sum("transactions", "commission", [
-            "account" => $user->uuid,
+            "account" => $accountId,
             "type"    => "commission",
             "status"  => 1
         ]) ?: 0);
     
         // Query lịch sử hoa hồng JOIN accounts lấy email
         $referrals = app()->db->select("transactions", [
-            "[>]accounts" => ["account" => "id"]
+            "[>]accounts" => ["referrer" => "id"]
         ], [
             "transactions.id",
             "transactions.amount",
@@ -641,7 +648,7 @@ class AccountController
             "transactions.created_at",
             "accounts.email(ref_email)"
         ], [
-            "transactions.referrer" => $accountId,
+            "transactions.account" => $accountId,
             "transactions.type"     => "commission",
             "ORDER"                 => ["transactions.created_at" => "DESC"],
             "LIMIT"                 => 50

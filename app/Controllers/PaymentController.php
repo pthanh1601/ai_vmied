@@ -91,8 +91,29 @@ class PaymentController
             ]);
         }
 
-        if ((getenv('AUTO_APPROVE_DEPOSIT') ?: 'true') === 'true') {
-            $this->processDepositSuccess($code);
+        // if ((getenv('AUTO_APPROVE_DEPOSIT') ?: 'true') === 'true') {
+        //     $this->processDepositSuccess($code);
+        
+                if ($method !== 'vnpay') {
+            return response()->json([
+                'status' => 'error',
+                'alert'  => 'Phương thức thanh toán này hiện chưa được hỗ trợ, vui lòng chọn VNPAY!'
+            ]);
+        }
+        // Nếu là VNPAY, sinh URL và chuyển hướng ngay
+        if ($method === 'vnpay') {
+            $vnpayService = new \App\Services\VnpayService();
+            $ipAddress = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+            if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+                $ipAddress = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
+            }
+            $vnpUrl = $vnpayService->createPaymentUrl($code, $amount, 'Nap tien VMIED ' . $code, trim($ipAddress));
+            
+            return response()->json([
+                'status'      => 'success',
+                'alert'       => 'Đang chuyển hướng sang VNPAY...',
+                'redirectUrl' => $vnpUrl
+            ]);
         }
         // ✅ Lấy số dư mới sau khi cộng điểm
         $newBalance = (int) (app()->db->get('points', 'points', ['account' => $user->uuid]) ?? 0);
@@ -108,7 +129,8 @@ class PaymentController
         return response()->json([
             'status'   => 'success',
             'alert'    => 'Nạp tiền thành công!',
-            'redirect' => '/app/historys',
+            // 'redirect' => '/app/historys',
+            'redirect' => '/app/historys?tab=transaction',
             'newBalance' => $newBalance,
         ]);
     }
@@ -127,6 +149,106 @@ class PaymentController
     //       return response()->json(['RspCode' => '00']);
     //   }
     // =========================================================
+    
+    // XỬ LÝ VNPAY RETURN (Khi user quay về web từ VNPAY)
+    // =========================================================
+    public function VnpayReturn() {
+        $inputData = $_GET;
+        $vnpayService = new \App\Services\VnpayService();
+
+        // Chuẩn bị khung HTML cơ bản load sẵn SweetAlert2
+        $htmlTop = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><style>body{background:#f8f9fa;font-family:sans-serif;}</style></head><body>';
+        $htmlBottom = '</body></html>';
+
+        if (isset($inputData['vnp_SecureHash'])) {
+            $isValid = $vnpayService->verifyHash($inputData);
+            if ($isValid && isset($inputData['vnp_ResponseCode']) && $inputData['vnp_ResponseCode'] == '00') {
+                // Thanh toán thành công, cộng điểm cho user
+                $this->processDepositSuccess($inputData['vnp_TxnRef']);
+                
+                // Cập nhật lại session để giao diện hiển thị điểm mới
+                $sessionAccount = app()->session->get('account');
+                if ($sessionAccount) {
+                    $newBalance = (int) (app()->db->get('points', 'points', ['account' => $sessionAccount['uuid']]) ?? 0);
+                    $sessionAccount['point'] = $newBalance;
+                    app()->session->set('account', $sessionAccount);
+                }
+                
+                // Hiển thị thông báo đẹp và chuyển hướng
+                echo $htmlTop . "<script>
+                    Swal.fire({
+                        title: 'Thành công!',
+                        text: 'Giao dịch VNPAY thành công. Điểm đã được cộng vào tài khoản!',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = '/app/historys?tab=transaction';
+                    });
+                </script>" . $htmlBottom;
+                exit;
+            }
+        }
+        
+        // Nếu thất bại hoặc sai chữ ký
+        echo $htmlTop . "<script>
+            Swal.fire({
+                title: 'Thất bại',
+                text: 'Giao dịch VNPAY không thành công hoặc chữ ký không hợp lệ.',
+                icon: 'error',
+                confirmButtonText: 'Quay lại'
+            }).then(() => {
+                window.location.href = '/app/historys?tab=transaction';
+            });
+        </script>" . $htmlBottom;
+        exit;
+    }
+
+    // =========================================================
+    // XỬ LÝ VNPAY IPN (Webhook Server-to-Server)
+    // =========================================================
+    public function VnpayIpn() {
+        $inputData = $_GET;
+        $vnpayService = new \App\Services\VnpayService();
+
+        if (isset($inputData['vnp_SecureHash'])) {
+            $isValid = $vnpayService->verifyHash($inputData);
+            if ($isValid) {
+                $orderCode = $inputData['vnp_TxnRef'];
+                
+                // Lấy đơn hàng từ DB
+                $transaction = app()->db->get("transactions", "*", ["code" => $orderCode, "type" => "deposit"]);
+
+                if ($transaction) {
+                    if ($transaction['amount'] == ($inputData['vnp_Amount'] / 100)) {
+                        if ($transaction['status'] == 0) {
+                            if ($inputData['vnp_ResponseCode'] == '00') {
+                                // Giao dịch thành công -> Gọi hàm xử lý cộng điểm
+                                $this->processDepositSuccess($orderCode);
+                            } else {
+                                // Giao dịch thất bại
+                                app()->db->update("transactions", [
+                                    "status" => 2,
+                                    "note"   => "Giao dịch VNPAY thất bại"
+                                ], ["code" => $orderCode]);
+                            }
+                            return response()->json(['RspCode' => '00', 'Message' => 'Confirm Success']);
+                        } else {
+                            return response()->json(['RspCode' => '02', 'Message' => 'Order already confirmed']);
+                        }
+                    } else {
+                        return response()->json(['RspCode' => '04', 'Message' => 'invalid amount']);
+                    }
+                } else {
+                    return response()->json(['RspCode' => '01', 'Message' => 'Order not found']);
+                }
+            } else {
+                return response()->json(['RspCode' => '97', 'Message' => 'Invalid signature']);
+            }
+        }
+        return response()->json(['RspCode' => '99', 'Message' => 'Unknown error']);
+    }
+    
    // =========================================================
     // XỬ LÝ SAU KHI THANH TOÁN THÀNH CÔNG (AUTO / VNPAY / MOMO)
     // =========================================================
